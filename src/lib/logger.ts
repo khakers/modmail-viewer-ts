@@ -1,0 +1,31 @@
+import pino from 'pino';
+let transport: pino.LoggerOptions['transport'];
+
+if (process.env.NODE_ENV === 'development') {
+    transport = {
+        target: 'pino-pretty',
+        options: {
+            colorize: true,
+        }
+    };
+}
+
+export const logger = pino({
+    level: process.env.NODE_ENV === 'development' ? 'debug' : 'info',
+    formatters: {
+        log(object) {
+            if (object instanceof Request) {
+                const url = new URL(object.url);
+                return {
+                    method: object.method,
+                    url: object.url,
+                    path: url.pathname,
+                    query: url.searchParams.toString(),
+                    agent: object.headers.get('user-agent')
+                };
+            }
+            return object;
+        }
+    },
+    transport
+});
