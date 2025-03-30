@@ -1,9 +1,9 @@
 import { discord, updateAccessToken } from "./auth";
 import { logger } from "$lib/logger";
-import { Cacheable, type CacheableOptions } from "cacheable";
-import KeyvMemcache from "@keyv/memcache";
+import { Cacheable, KeyvCacheableMemory } from "cacheable";
 import { env } from "$env/dynamic/private";
 import { DISCORD_API_URL } from "$env/static/private";
+import KeyvMemcache from "@keyv/memcache";
 
 export type DiscordUser = {
     id: string,
@@ -49,6 +49,14 @@ export type PartialGuild = {
     approximate_presence_count?: number; // Approximate presence count for the guild (online members)
 }
 
+export type DiscordOIDC = {
+    sub: string; // The unique identifier for the Discord user
+    preferred_username: string; // The username of the Discord user
+    nickname: string;
+    picture: string;
+    locale: string;
+}
+
 type DiscordToken = {
     discordUserId: string;
     refreshToken: string;
@@ -56,17 +64,27 @@ type DiscordToken = {
     accessTokenExpiresAt: Date;
 }
 
-const cacheSettings: CacheableOptions = {
-    ttl: 60 * 5 * 1000
+
+const options = {
+    ttl: '5m',
+    stats: true,
+    namespace: 'discord-api',
 };
+const primary =  new KeyvCacheableMemory(options)
+
 if (env.MEMCACHED_URI !== undefined) {
 
     logger.info("Using memcached as tier 2 Discord API cache");
-    const secondary = new KeyvMemcache(env.MEMCACHED_URI)
-    cacheSettings.secondary = secondary; // Use memcached if MEMCACHED_URI is set
+    // const secondary = new KeyvMemcache(env.MEMCACHED_URI) // Use memcached if MEMCACHED_URI is set
 }
-const cacheable = new Cacheable(cacheSettings); // Cache for 5 minutes
+const cacheable = new Cacheable({primary, secondary: env.MEMCACHED_URI ? new KeyvMemcache(env.MEMCACHED_URI) : undefined });
 
+cacheable.on('cacheHit', (key) => {
+    logger.trace({ key }, `Cache hit for Discord API call`);
+});
+cacheable.on('cacheMiss', (key) => {
+    logger.trace({ key }, `Cache miss for Discord API call`);
+});
 
 
 const ratelimitMap = new Map<string, { reset: Date, remaining: number, limit: number, bucket: string }>();
@@ -194,6 +212,7 @@ export class DiscordApi {
      * @throws Error if the provided guildId is empty or invalid.
      */
     async getGuildUserInfo(guildId: string): Promise<GuildMember> {
+        logger.trace({ guildId }, `Fetching guild user info for guild ${guildId} with cacheable Discord API`);
         await this.checkTokenRefresh();
 
         if (!guildId) {
@@ -261,10 +280,30 @@ export class DiscordApi {
     }
 }
 
-export class CacheableDiscordApi extends DiscordApi {
+export class CacheableDiscordApi {
 
+    private DiscordAPI: DiscordApi;
+    private discordToken: DiscordToken;
+    wrappedGetDiscordUser: () => Promise<DiscordUser>;
+    private wrappedGetGuildUserInfo;
+    private wrappedGetUserGuilds;
     constructor(token: DiscordToken) {
-        super(token);
+        this.DiscordAPI = DiscordApi.fromSession(token);
+        this.discordToken = token;
+        const boundGetDiscordUser = this.DiscordAPI.getDiscordUser.bind(this.DiscordAPI);
+        const boundGetGuildUserInfo = this.DiscordAPI.getGuildUserInfo.bind(this.DiscordAPI);
+        const boundGetUserGuilds = this.DiscordAPI.getUserGuilds.bind(this.DiscordAPI);
+
+        this.wrappedGetDiscordUser = cacheable.wrap(boundGetDiscordUser, {
+            keyPrefix: "getDiscordUser" + this.discordToken.discordUserId,
+            ttl: '10m'
+        });
+        this.wrappedGetGuildUserInfo = cacheable.wrap(boundGetGuildUserInfo, {
+            keyPrefix: "getGuildUserInfo" + this.discordToken.discordUserId,
+        });
+        this.wrappedGetUserGuilds = cacheable.wrap(boundGetUserGuilds, {
+            keyPrefix: "getUserGuilds" + this.discordToken.discordUserId,
+        });
     }
 
     static fromSession(session: {
@@ -281,27 +320,22 @@ export class CacheableDiscordApi extends DiscordApi {
         });
     }
 
-    private wrappedGetDiscordUser = cacheable.wrap(super.getDiscordUser, {
-        keyPrefix: "getDiscordUser" + this.discordToken.discordUserId,
-        ttl: 60 * 10 * 1000
-    });
+
     async getDiscordUser(): Promise<DiscordUser> {
         return this.wrappedGetDiscordUser();
     }
 
-    private wrappedGetGuildUserInfo = cacheable.wrap(super.getGuildUserInfo, {
-        keyPrefix: "getGuildUserInfo" + this.discordToken.discordUserId,
-    });
+
 
     async getGuildUserInfo(guildId: string): Promise<GuildMember> {
         return this.wrappedGetGuildUserInfo(guildId);
     }
 
-    private wrappedGetUserGuilds = cacheable.wrap(super.getUserGuilds, {
-        keyPrefix: "getUserGuilds" + this.discordToken.discordUserId,
-    });
+
 
     async getUserGuilds(): Promise<Array<PartialGuild>> {
         return this.wrappedGetUserGuilds();
     }
+
+    // async getUserOIDC(): Promise<DiscordUser> {
 }

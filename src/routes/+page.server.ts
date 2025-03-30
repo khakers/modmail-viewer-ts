@@ -1,4 +1,4 @@
-import { DiscordApi } from '$lib/server/discord';
+import { CacheableDiscordApi, DiscordApi } from '$lib/server/discord';
 import { error } from '$lib/server/skUtils';
 import { getTenants } from '$lib/server/tenancy/tenant';
 import type { PageServerLoad } from './$types';
@@ -16,7 +16,7 @@ export const load = (async (event) => {
         error(401, 'Unauthorized: Session not found', event);
     }
 
-    const discordApi = DiscordApi.fromSession(session);
+    const discordApi = CacheableDiscordApi.fromSession(session);
 
     const servers = await discordApi.getUserGuilds();
 

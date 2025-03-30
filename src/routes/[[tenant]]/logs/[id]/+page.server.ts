@@ -1,9 +1,10 @@
 import { convertBSONtoJS } from '$lib/bsonUtils';
 import type { ModmailThread } from '$lib/modmail';
 import { getMongodbClient } from '$lib/server/mongodb';
+import { error } from '$lib/server/skUtils';
 import { MultitenancyDisabledError } from '$lib/server/tenancy/monoTenantMongodb';
 import type { PageServerLoad } from './$types';
-import { error, isHttpError } from '@sveltejs/kit';
+import { isHttpError } from '@sveltejs/kit';
 
 export const load: PageServerLoad = async (event) => {
 
@@ -15,7 +16,7 @@ export const load: PageServerLoad = async (event) => {
 
       if (!client) {
          logger.error('MongoDB client not found');
-         error(404, `modmail server of id ${event.params.tenant} not found`);
+         error(404, `modmail server of id ${event.params.tenant} not found`, event);
       }
 
       try {
@@ -23,9 +24,8 @@ export const load: PageServerLoad = async (event) => {
          // console.log(foo);
          if (!modmailThread) {
             logger.debug(event.params.id, 'Document not found');
-            error(404, 'Not Found');
+            error(404, 'Not Found', event);
          }
-         console.log("documentfoubnd");
          logger.debug('Document found');
          ;
          return {
@@ -36,7 +36,7 @@ export const load: PageServerLoad = async (event) => {
             throw err;
          }
          logger.error(err);
-         error(500, 'Internal Server Error');
+         error(500, 'Internal Server Error', event);
       }
    } catch (err) {
       if (isHttpError(err)) {
@@ -45,10 +45,10 @@ export const load: PageServerLoad = async (event) => {
       if (err instanceof MultitenancyDisabledError) {
 
       logger.error(err);
-      error(404, 'Invalid tenant slug');
+      error(404, 'Invalid tenant slug', event);
       } else {
          logger.error(err);
-         error(500);
+         error(500, 'internal error', event);
       }
    }
 

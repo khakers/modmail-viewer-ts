@@ -10,4 +10,5 @@
 		{data.session.discordUserId}
 	</span>
 </div>
+
 {@render children()}

@@ -4,6 +4,9 @@ import { paraglideMiddleware } from '$lib/paraglide/server';
 import { logger } from '$lib/logger';
 import { sequence } from '@sveltejs/kit/hooks';
 import { Tenant } from '$lib/server/tenancy/tenant';
+import { CacheableDiscordApi } from '$lib/server/discord';
+import { error } from '$lib/server/skUtils';
+import { getPermisionOrdinal } from '$lib/server/modmail/permissions';
 
 const handleParaglide: Handle = ({ event, resolve }) =>
 	paraglideMiddleware(event.request, ({ request, locale }) => {
@@ -72,6 +75,14 @@ const handleAuth: Handle = async ({ event, resolve }) => {
 
 	// event.locals.user = user;
 	event.locals.session = session;
+
+	// add discord user information
+	// if (session) {
+	// 	const discordApi = CacheableDiscordApi.fromSession(session);
+	// 	const userdata = await discordApi.getDiscordUser();
+	// }
+
+
 	return resolve(event);
 };
 
@@ -79,8 +90,8 @@ const handleAuth: Handle = async ({ event, resolve }) => {
 // TODO refactor to supply tenant information instead
 // Adds a MongoDB client to the request if the route starts with /[[tenants]]
 const addMongoClientToRequest: Handle = async ({ event, resolve }) => {
-	event.locals.logger.trace({routeId: event.route.id }, 'Handling MongoDB client for request');
-	if (event.route.id?.startsWith('/[[tenant]]') ) {
+	event.locals.logger.trace({ routeId: event.route.id }, 'Handling MongoDB client for request');
+	if (event.route.id?.startsWith('/[[tenant]]')) {
 		event.locals.logger.trace('Adding MongoDB client to request')
 		if (!event.params.tenant) {
 			// If no tenant is specified, return without adding a client
@@ -92,9 +103,53 @@ const addMongoClientToRequest: Handle = async ({ event, resolve }) => {
 	return resolve(event);
 }
 
-export const handleError: HandleServerError = async ({ error, event, status, message}) => {
+const handleTenancyAuthorization: Handle = async ({ event, resolve }) => {
+	// Runs after the session and tenancy middleware to ensure that the user has access to the tenant they are trying to access
+	const logger = event.locals.logger.child({ module: 'handleTenancyAuthorization' });
+	if (!event.locals.session) {
+		// No session, no user to authorize
+		return resolve(event);
+	}
+	// TODO sveltekit does not support a custom error page for errors thrown via hooks
+	if (event.route.id?.startsWith('/[[tenant]]')) {
+		// Ensure the user has access to the tenant
+		if (!event.locals.Tenant) {
+			// No tenant found, return without resolving
+			logger.trace('No tenant found for request');
+			return resolve(event);
+		}
+		const discordAPi = CacheableDiscordApi.fromSession(event.locals.session);
+		logger.trace({ tenantId: event.locals.Tenant.id, discordUserId: event.locals.session.discordUserId }, 'Checking permissions for tenant');
+
+		const tenantServerId = event.locals.Tenant.guildId;
+		if (!tenantServerId) {
+			logger.error({ tenantId: event.locals.Tenant.id }, 'Tenant configuration missing guild id');
+			error(500, 'Tenant configuration missing guild id', event);
+		}
+
+		const userGuildInfo = await discordAPi.getGuildUserInfo(tenantServerId);
+		logger.trace({ userGuildInfo }, 'Retrieved user guild info for tenant authorization'); // Log the user guild info for debugging
+
+		if (!userGuildInfo) {
+			// User is not part of the guild
+			logger.trace({ tenantId: event.locals.Tenant.id, discordUserId: event.locals.session.discordUserId }, 'User not found in tenant guild');
+			// Redirect to unauthorized or some other page
+			return error(403, 'You do not have access to this tenant', event);
+		}
+		const permissionLevel = await event.locals.Tenant.getPermissionsLevel(userGuildInfo.roles, event.locals.session.discordUserId);
+
+		if (permissionLevel === undefined || getPermisionOrdinal(permissionLevel) < getPermisionOrdinal("SUPPORTER")) {
+			logger.trace({ discordUserId: event.locals.session.id, tenantId: event.locals.Tenant.id }, 'User is not authorized to access this tenant');
+			return error(403, 'You do not have access to this tenant', event);
+		}
+	}
+
+	return resolve(event);
+}
+
+export const handleError: HandleServerError = async ({ error, event, status, message }) => {
 	// Custom error handling
-	const reqLogger = (event.locals.logger || logger).child({ module: "handleError"});
+	const reqLogger = (event.locals.logger || logger).child({ module: "handleError" });
 
 	// Log the error
 	reqLogger.error({ error }, 'Unhandled server error');
@@ -108,7 +163,7 @@ export const handleError: HandleServerError = async ({ error, event, status, mes
 
 export const init: ServerInit = async () => {
 	// if 
-	
+
 };
 
 export const handle: Handle = sequence(
@@ -116,7 +171,8 @@ export const handle: Handle = sequence(
 	handleParaglide,
 	handleLogging,
 	handleAuth,
-	addMongoClientToRequest
+	addMongoClientToRequest,
+	handleTenancyAuthorization
 );
 
 // export const handle = sequence(originalHandle, handleAuth);
