@@ -6,8 +6,7 @@
 </script>
 <div class="flex flex-col">
 	<span class="self-end">
-		Discord ID:
-		{data.session.discordUserId}
+		{data.user.username}
 	</span>
 </div>
 

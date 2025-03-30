@@ -77,10 +77,16 @@ const handleAuth: Handle = async ({ event, resolve }) => {
 	event.locals.session = session;
 
 	// add discord user information
-	// if (session) {
-	// 	const discordApi = CacheableDiscordApi.fromSession(session);
-	// 	const userdata = await discordApi.getDiscordUser();
-	// }
+	if (session) {
+		const discordApi = CacheableDiscordApi.fromSession(session);
+		const userdata = await discordApi.getDiscordUser();
+		event.locals.user = {
+			discordUserId: userdata.id, 
+			username: userdata.username,
+			discriminator: userdata.discriminator, 
+			avatar: userdata.avatar ? `https://cdn.discordapp.com/avatars/${userdata.id}/${userdata.avatar}.png` : null
+		};
+	}
 
 
 	return resolve(event);
@@ -89,7 +95,7 @@ const handleAuth: Handle = async ({ event, resolve }) => {
 
 // TODO refactor to supply tenant information instead
 // Adds a MongoDB client to the request if the route starts with /[[tenants]]
-const addMongoClientToRequest: Handle = async ({ event, resolve }) => {
+const handleInjectTenant: Handle = async ({ event, resolve }) => {
 	event.locals.logger.trace({ routeId: event.route.id }, 'Handling MongoDB client for request');
 	if (event.route.id?.startsWith('/[[tenant]]')) {
 		event.locals.logger.trace('Adding MongoDB client to request')
@@ -128,7 +134,7 @@ const handleTenancyAuthorization: Handle = async ({ event, resolve }) => {
 		}
 
 		const userGuildInfo = await discordAPi.getGuildUserInfo(tenantServerId);
-		logger.trace({ userGuildInfo }, 'Retrieved user guild info for tenant authorization'); // Log the user guild info for debugging
+		logger.trace({ userGuildInfo }, 'Retrieved user guild info for tenant authorization');
 
 		if (!userGuildInfo) {
 			// User is not part of the guild
@@ -171,7 +177,7 @@ export const handle: Handle = sequence(
 	handleParaglide,
 	handleLogging,
 	handleAuth,
-	addMongoClientToRequest,
+	handleInjectTenant,
 	handleTenancyAuthorization
 );
 
