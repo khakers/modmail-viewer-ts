@@ -1,9 +1,10 @@
 import { getMongodbClient } from '$lib/server/mongodb';
-import { error, isHttpError } from '@sveltejs/kit';
+import { isHttpError } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
-import { MultitenancyDisabledError } from '$lib/server/monoTenantMongodb';
+import { MultitenancyDisabledError } from '$lib/server/tenancy/monoTenantMongodb';
 import type { ModmailThread } from '$lib/modmail';
 import { convertBSONtoJS } from '$lib/bsonUtils';
+import { error } from '$lib/server/skUtils';
 
 export const load: PageServerLoad = async (event) => {
 
@@ -14,7 +15,7 @@ export const load: PageServerLoad = async (event) => {
 
       if (!client) {
          logger.error('MongoDB client not found');
-         error(404, `modmail server of id ${event.params.tenant} not found`);
+         error(404, `modmail server of id '${event.params.tenant}' not found`, event);
       }
 
       try {
@@ -36,7 +37,7 @@ export const load: PageServerLoad = async (event) => {
             throw err;
          }
          logger.error(err);
-         error(500, 'Internal Server Error');
+         error(500, 'Internal Server Error', event);
       }
    } catch (err) {
       if (isHttpError(err)) {
@@ -45,10 +46,10 @@ export const load: PageServerLoad = async (event) => {
       if (err instanceof MultitenancyDisabledError) {
 
          logger.error(err);
-         error(404, 'Invalid tenant slug');
+         error(404, 'Invalid tenant slug', event);
       } else {
          logger.error(err);
-         error(500);
+         error(500, "Internal Server Error: Failed to load modmail threads", event);
       }
    }
 

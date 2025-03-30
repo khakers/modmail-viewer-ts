@@ -9,6 +9,16 @@ export default defineConfig({
 		target: "ES2022"
 	},
 	optimizeDeps: { esbuildOptions: { target: "ES2022" } },
+	server: {
+		watch: {
+			ignored: [
+				'**/mockoon.json',
+				'**docker-compose.yml',
+				'*.db',
+				'**/bruno/**'
+			]
+		}
+	},
 	plugins: [
 		tailwindcss(),
 		sveltekit(),

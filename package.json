@@ -13,7 +13,10 @@
 		"format": "prettier --write .",
 		"lint": "prettier --check . && eslint .",
 		"test:unit": "vitest",
-		"test": "npm run test:unit -- --run"
+		"test": "npm run test:unit -- --run",
+		"db:push": "drizzle-kit push",
+		"db:migrate": "drizzle-kit migrate",
+		"db:studio": "drizzle-kit studio"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^1.2.5",
@@ -24,7 +27,9 @@
 		"@tailwindcss/vite": "^4.0.0",
 		"@testing-library/jest-dom": "^6.6.3",
 		"@testing-library/svelte": "^5.2.4",
+		"@types/better-sqlite3": "^7.6.12",
 		"@types/node": "^22.13.14",
+		"drizzle-kit": "^0.30.2",
 		"eslint": "^9.18.0",
 		"eslint-config-prettier": "^10.0.1",
 		"eslint-plugin-svelte": "^3.0.0",
@@ -45,13 +50,22 @@
 	},
 	"dependencies": {
 		"@inlang/paraglide-js": "^2.0.6",
+		"@keyv/memcache": "^2.0.1",
+		"@oslojs/crypto": "^1.0.1",
+		"@oslojs/encoding": "^1.1.0",
+		"arctic": "^3.6.0",
+		"better-sqlite3": "^11.8.0",
 		"bson": "^6.10.3",
+		"cacheable": "^1.8.9",
+		"drizzle-orm": "^0.40.0",
+		"keyv": "^5.3.2",
 		"mongodb": "^6.15.0",
 		"pino": "^9.6.0"
 	},
 	"pnpm": {
 		"onlyBuiltDependencies": [
-			"esbuild"
+			"esbuild",
+			"better-sqlite3"
 		]
 	}
 }

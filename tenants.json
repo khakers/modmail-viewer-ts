@@ -1,18 +1,22 @@
 [
-    {
-        "id": "1",
-        "slug": "potato",
-        "name": "Tenant 1",
-        "title": "Tenant1",
-        "description": "Tenant 1 description",
-        "connection_uri": "mongodb://localhost:27017/modmail_bot"
-    },
-    {
-        "id": "2",
-        "slug": "qsr",
-        "name": "Tenant 2",
-        "title": "Tenant2",
-        "description": "Tenant 2 description",
-        "connection_uri": "mongodb://localhost:27017/testdb"
-    }
+	{
+		"id": "1",
+		"slug": "potato",
+		"name": "Tenant 1",
+		"title": "Tenant1",
+		"description": "Tenant 1 description",
+		"connection_uri": "mongodb://localhost:27017/modmail_bot",
+		"guild_id": "947288679527886918",
+		"bot_id": "503283937976778762"
+	},
+	{
+		"id": "2",
+		"slug": "qsr",
+		"name": "Tenant 2",
+		"title": "Tenant2",
+		"description": "Tenant 2 description",
+		"connection_uri": "mongodb://localhost:27017/testdb",
+		"guild_id": "947323770685784104",
+		"bot_id": "503283937976778762"
+	}
 ]

@@ -1,7 +1,7 @@
 import { convertBSONtoJS } from '$lib/bsonUtils';
 import type { ModmailThread } from '$lib/modmail';
 import { getMongodbClient } from '$lib/server/mongodb';
-import { MultitenancyDisabledError } from '$lib/server/monoTenantMongodb';
+import { MultitenancyDisabledError } from '$lib/server/tenancy/monoTenantMongodb';
 import type { PageServerLoad } from './$types';
 import { error, isHttpError } from '@sveltejs/kit';
 

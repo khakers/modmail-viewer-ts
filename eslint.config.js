@@ -33,5 +33,22 @@ export default ts.config(
 				svelteConfig
 			}
 		}
+	},
+	{
+		files: ['**/+page.server.ts'],
+		rules: {
+			'no-restricted-imports': [
+				'error',
+				{
+					paths: [
+						{
+							name: '$lib/logger',
+							message:
+								'Please use sveltekit event.locals.logger instead of importing logger from "$lib/logger".'
+						}
+					]
+				}
+			]
+		}
 	}
 );

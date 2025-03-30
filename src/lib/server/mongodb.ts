@@ -1,8 +1,8 @@
 import type { MongoClient } from "mongodb";
-import { getMongodbClient as getMultiTenantMongodbClient } from "./multitenantMongodb";
-import { getMongodbClient as getMonoTenantMongodbClient } from "./monoTenantMongodb";
+import { getMongodbClient as getMultiTenantMongodbClient } from "./tenancy/multitenantMongodb";
+import { getMongodbClient as getMonoTenantMongodbClient } from "./tenancy/monoTenantMongodb";
 
-const multitenancyEnabled = process.env.TENANT_JSON !== undefined;
+export const multitenancyEnabled = process.env.TENANT_JSON !== undefined;
 
 // 
 export function getMongodbClient(tenant: string | undefined): MongoClient | undefined {
