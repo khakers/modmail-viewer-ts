@@ -1,13 +1,12 @@
 <script lang="ts">
 	import '../app.css';
-	import type { LayoutProps } from './$types';
+	import { ModeWatcher } from 'mode-watcher';
+	import type { Snippet } from 'svelte';
+	import type { LayoutData } from './$types';
 
-	let { data, children }: LayoutProps = $props();
+	let { data, children }: { data: LayoutData; children: Snippet } = $props();
 </script>
-<div class="flex flex-col">
-	<span class="self-end">
-		{data.user.username}
-	</span>
-</div>
+
+<ModeWatcher />
 
 {@render children()}

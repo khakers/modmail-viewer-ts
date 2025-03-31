@@ -105,6 +105,10 @@ const handleInjectTenant: Handle = async ({ event, resolve }) => {
 			return resolve(event);
 		}
 		event.locals.Tenant = await Tenant.create(event.params.tenant);
+		event.locals.logger = event.locals.logger.child({
+			tenantId: event.locals.Tenant.id,
+			tenantSlug: event.locals.Tenant.slug
+		});
 	}
 	return resolve(event);
 }

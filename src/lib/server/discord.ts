@@ -70,14 +70,14 @@ const options = {
     stats: true,
     namespace: 'discord-api',
 };
-const primary =  new KeyvCacheableMemory(options)
+const primary = new KeyvCacheableMemory(options)
 
 if (env.MEMCACHED_URI !== undefined) {
 
     logger.info("Using memcached as tier 2 Discord API cache");
     // const secondary = new KeyvMemcache(env.MEMCACHED_URI) // Use memcached if MEMCACHED_URI is set
 }
-const cacheable = new Cacheable({primary, secondary: env.MEMCACHED_URI ? new KeyvMemcache(env.MEMCACHED_URI) : undefined });
+const cacheable = new Cacheable({ primary, secondary: env.MEMCACHED_URI ? new KeyvMemcache(env.MEMCACHED_URI) : undefined });
 
 cacheable.on('cacheHit', (key) => {
     logger.trace({ key }, `Cache hit for Discord API call`);
@@ -287,6 +287,8 @@ export class CacheableDiscordApi {
     wrappedGetDiscordUser: () => Promise<DiscordUser>;
     private wrappedGetGuildUserInfo;
     private wrappedGetUserGuilds;
+    private cacheableGetGuildInfo;
+
     constructor(token: DiscordToken) {
         this.DiscordAPI = DiscordApi.fromSession(token);
         this.discordToken = token;
@@ -303,6 +305,10 @@ export class CacheableDiscordApi {
         });
         this.wrappedGetUserGuilds = cacheable.wrap(boundGetUserGuilds, {
             keyPrefix: "getUserGuilds" + this.discordToken.discordUserId,
+        });
+
+        this.cacheableGetGuildInfo = cacheable.wrap(this.uncachedGetGuildInfo.bind(this.DiscordAPI), {
+            keyPrefix: "getGuildInfo",
         });
     }
 
@@ -326,7 +332,6 @@ export class CacheableDiscordApi {
     }
 
 
-
     async getGuildUserInfo(guildId: string): Promise<GuildMember> {
         return this.wrappedGetGuildUserInfo(guildId);
     }
@@ -337,5 +342,45 @@ export class CacheableDiscordApi {
         return this.wrappedGetUserGuilds();
     }
 
+
+    private async uncachedGetGuildInfo(guildId: string | bigint): Promise<PartialGuild | undefined> {
+        //todo handle token refresh
+        const previousSnowflake = (BigInt(guildId) - BigInt(1)).toString();
+
+        const url = new URL(API_ENDPOINT + `/guilds/${guildId}`);
+        url.searchParams.append('after', previousSnowflake);
+        url.searchParams.append('limit', '1');
+
+        if (isThisEndpointRateLimited(url.toString + this.discordToken.discordUserId)) {
+            // If the endpoint is rate limited, log a warning and return early
+            logger.warn({ userId: this.discordToken.discordUserId }, `Cannot fetch Discord user guilds: endpoint is rate limited`);
+            throw new Error("Rate limit exceeded for " + url.toString);
+        }
+
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${this.discordToken.accessToken}`
+            }
+        });
+
+        trackLimit(response, url.toString());
+
+        if (!response.ok) {
+            if (response.status === 429) {
+                // Unauthorized, token might be invalid or expired
+                logger.warn({ endpoint: url.toString(), response }, `hit endpoint rate limit`);
+            }
+            logger.error({ endpoint: url.toString(), response }, `Failed to fetch user guilds: ${response.statusText}`);
+            throw new Error(`Failed to fetch guild member info: ${response.statusText}`);
+        }
+        const res = await response.json();
+        return res[0] || undefined;
+    }
+
+    async getGuildInfo(guildId: string | bigint): Promise<PartialGuild| undefined> {
+        return this.cacheableGetGuildInfo(guildId);
+    }
     // async getUserOIDC(): Promise<DiscordUser> {
 }

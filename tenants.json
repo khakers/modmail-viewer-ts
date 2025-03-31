@@ -2,7 +2,7 @@
 	{
 		"id": "1",
 		"slug": "potato",
-		"name": "Tenant 1",
+		"name": "Test Modmail Server",
 		"title": "Tenant1",
 		"description": "Tenant 1 description",
 		"connection_uri": "mongodb://localhost:27017/modmail_bot",
