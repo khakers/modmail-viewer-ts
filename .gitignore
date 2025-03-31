@@ -27,3 +27,7 @@ src/lib/paraglide
 
 # SQLite
 *.db
+
+/bruno
+
+tenants.json

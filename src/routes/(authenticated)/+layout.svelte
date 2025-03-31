@@ -42,7 +42,7 @@
 						<Breadcrumb.Item class="hidden md:block">
 							{#if page.route.id !== '/(authenticated)/[[tenant]]/logs'}
 								<Breadcrumb.Link
-									data-sveltekit-preload-data
+									data-sveltekit-preload-data="hover"
 									href={resolveRoute('/[[tenant]]/logs', { tenant: page.params.tenant })}
 								>
 									{m.active_late_lemming_feast()}

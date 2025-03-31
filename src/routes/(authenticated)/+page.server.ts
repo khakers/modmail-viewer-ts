@@ -1,8 +1,10 @@
 import { CacheableDiscordApi } from '$lib/server/discord';
 import { error } from '$lib/server/skUtils';
 import { getTenants } from '$lib/server/tenancy/tenant';
-import type { PageServerLoad } from './$types';
+import type { Actions, PageServerLoad } from './$types';
 import { getPermisionOrdinal } from '$lib/server/modmail/permissions';
+import { invalidateSession, deleteSessionTokenCookie } from '$lib/server/auth';
+import { fail, redirect } from '@sveltejs/kit';
 
 export const load = (async (event) => {
     // grab a list of all tenats, filter out tenants that the user is not in, and finally check permissions
@@ -41,14 +43,11 @@ export const load = (async (event) => {
     // Get the permission level of the user for each tenant and filter out tenants that the user does not have permissions for
     // (below SUPPORTER)
 
-    const foo = (await Promise.all(
+    const filterTenants = (await Promise.all(
         roles.map(a => a.tenant.getPermissionsLevel(a.roles, session.discordUserId)
             .then(permissionLevel => ({ tenant: a.tenant, permissionLevel }))
         )
     ));
-    // need to async filter all tenants to check if the user has permissions for each tenant
-    // const foo = tenants.map((tenant) => tenant.getPermissionsLevel(session.discordUserId, session.))
-
 
     return {
         roles: roles.map(role => ({roles: role.roles, guildId: role.guildId})),
@@ -58,12 +57,12 @@ export const load = (async (event) => {
             name: tenant.name,
 
         })),
-        permissionMap: foo.map(item => ({
+        permissionMap: filterTenants.map(item => ({
             tenantId: item.tenant.id,
             slug: item.tenant.slug,
             permissionLevel: item.permissionLevel
         })),
-        tenants: foo
+        tenants: filterTenants
             .filter(item => getPermisionOrdinal(item.permissionLevel ?? "ANYONE") >= getPermisionOrdinal("SUPPORTER"))
             .map(item => ({
                 id: item.tenant.id,
@@ -73,3 +72,15 @@ export const load = (async (event) => {
             }))
     };
 }) satisfies PageServerLoad;
+
+
+export const actions = {
+    logout: async (event) => {
+        if (event.locals.session === null) {
+            return fail(401);
+        }
+        await invalidateSession(event.locals.session.id);
+        deleteSessionTokenCookie(event);
+        return redirect(302, "/auth/login");
+    }
+} satisfies Actions;

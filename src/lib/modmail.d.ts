@@ -10,14 +10,15 @@ export type User = {
 
 type Attachment = {
     content_type?: string,
-    description?: string|null,
+    description?: string | null,
     filename: string,
     height: number,
     id: number
+    // This value is wrong
     is_image?: boolean,
     uploaded_at?: date,
     url?: string,
-    width: number|null
+    width: number | null
 }
 
 export type Message = {
@@ -27,25 +28,28 @@ export type Message = {
     edited?: string,
     message_id: string,
     timestamp: string,
-    type: "thread_message",
+    type: "thread_message" | "system" | "internal" | "anonymous",
     nfsw?: boolean,
     open: boolean,
     recipient: User,
-    title?: string|null
+    title?: string | null
 }
 
 export type ModmailThread = {
     _id: string,
     bot_id: string,
     channel_id: string,
-    close_message: string|null|undefined,
-    closed_at: string|null|undefined,
+    close_message?: string | null,
+    closed_at?: string | null,
     created_at: string,
-    closer: User|null|undefined,
+    closer?: User | null,
     creator: User,
-    dm_channel_id: string|null|undefined,
+    recipient: User,
+    dm_channel_id?: string | null | undefined,
     guild_id: string,
     key: string,
-    messages: Message[]
-
+    messages: Message[],
+    open: boolean,
+    nfsw: boolean,
+    title: string | null
 }

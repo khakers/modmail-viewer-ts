@@ -6,8 +6,8 @@
 	import { useSidebar } from '$lib/components/ui/sidebar/index.js';
 	import ChevronsUpDown from '@lucide/svelte/icons/chevrons-up-down';
 	import LogOut from '@lucide/svelte/icons/log-out';
-	import Sparkles from '@lucide/svelte/icons/sparkles';
 	import Github from '@lucide/svelte/icons/github';
+	import { enhance } from '$app/forms';
 
 	let {
 		user
@@ -71,7 +71,12 @@
 				<DropdownMenu.Separator />
 				<DropdownMenu.Group>
 					<DropdownMenu.Item>
-						<a href="https://github.com/khakers/modmail-viewer" referrerpolicy="strict-origin" target="_blank" class="flex flex-1">
+						<a
+							href="https://github.com/khakers/modmail-viewer"
+							referrerpolicy="strict-origin"
+							target="_blank"
+							class="flex flex-1"
+						>
 							<span
 								class="relative flex cursor-pointer select-none items-center gap-2 outline-none transition-colors data-[disabled]:pointer-events-none data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0"
 							>
@@ -103,15 +108,24 @@
 					</DropdownMenu.Item>
 				</DropdownMenu.Group> -->
 				<DropdownMenu.Separator />
-				<DropdownMenu.Item onclick={() => goto('/auth/logout')}>
-					<a href="/auth/logout" data-sveltekit-preload-data={false} class="flex flex-1">
+				<DropdownMenu.Item>
+					<form method="POST" action="/?/logout" use:enhance class="flex flex-1">
+						<button
+							class="flex flex-1"
+						>
+						<span class="relative flex cursor-pointer select-none items-center gap-2 outline-none transition-colors data-[disabled]:pointer-events-none data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0">
+							<LogOut />
+							Log out
+					</span>
+						</button>
+					</form>
+					<!-- <a href="/auth/logout" data-sveltekit-preload-data={false} class="flex flex-1">
 						<span
 							class="relative flex cursor-pointer select-none items-center gap-2 outline-none transition-colors data-[disabled]:pointer-events-none data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0"
 						>
-							<LogOut />
-							Log out
+
 						</span>
-					</a>
+					</a> -->
 				</DropdownMenu.Item>
 			</DropdownMenu.Content>
 		</DropdownMenu.Root>

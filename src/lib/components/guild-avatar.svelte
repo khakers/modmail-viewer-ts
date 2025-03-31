@@ -44,6 +44,3 @@
 		/>
 		<Avatar.Fallback class="text-primary">{fallback}</Avatar.Fallback>
 	</Avatar.Root>
-
-<style>
-</style>
