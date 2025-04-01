@@ -51,12 +51,6 @@ export const load = (async (event) => {
 
     return {
         roles: roles.map(role => ({roles: role.roles, guildId: role.guildId})),
-        possibleTenants: tenants.map(tenant => ({
-            id: tenant.id,
-            slug: tenant.slug,
-            name: tenant.name,
-
-        })),
         permissionMap: filterTenants.map(item => ({
             tenantId: item.tenant.id,
             slug: item.tenant.slug,
@@ -68,7 +62,8 @@ export const load = (async (event) => {
                 id: item.tenant.id,
                 slug: item.tenant.slug,
                 name: item.tenant.name,
-                permissionLevel: item.permissionLevel
+                permissionLevel: item.permissionLevel,
+                description: item.tenant.description
             }))
     };
 }) satisfies PageServerLoad;

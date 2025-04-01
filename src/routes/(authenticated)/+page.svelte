@@ -1,20 +1,28 @@
 <script lang="ts">
 	import { resolveRoute } from '$app/paths';
 	import type { PageData } from './$types';
+	import * as Card from '$lib/components/ui/card/index.js';
+	import { m } from '$lib/paraglide/messages';
 
 	const { data }: { data: PageData } = $props();
 </script>
 
-<h1>Modmail-Viewer-ts</h1>
-<p>Modmail-Viewer-ts is a tool to view Discord Modmail historical threads.</p>
-<h2>Your Modmail instances</h2>
-<ul>
-	{#each data.tenants as tenant, i (tenant.id)}
+<h2 class="text-2xl font-medium">{m.sleek_wild_okapi_nourish()}</h2>
+<ul class="grid grid-cols-1 gap-4">
+	{#each data.tenants as tenant (tenant.id)}
 		<li>
-			<h2><a href={resolveRoute('/[[tenant]]/logs', {tenant: tenant.slug})}>{tenant.name}</a></h2>
+			<Card.Root>
+				<Card.Header>
+					<Card.Title
+						><a href={resolveRoute('/[[tenant]]/logs', { tenant: tenant.slug })}>{tenant.name}</a
+						></Card.Title
+					>
+					<Card.Description>{tenant.description}</Card.Description>
+				</Card.Header>
+				<Card.Content>
+					<!-- TODO finish tenant cards -->
+				</Card.Content>
+			</Card.Root>
 		</li>
 	{/each}
 </ul>
-<!-- <pre>
-{JSON.stringify(data, null, 2)}
-</pre> -->

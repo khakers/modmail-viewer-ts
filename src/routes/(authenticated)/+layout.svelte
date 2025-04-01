@@ -35,27 +35,31 @@
 				<Separator orientation="vertical" class="mr-2 h-4" />
 				<Breadcrumb.Root>
 					<Breadcrumb.List>
-						<Breadcrumb.Item class="hidden md:block">
-							{page.params.tenant}
-						</Breadcrumb.Item>
-						<Breadcrumb.Separator class="hidden md:block" />
-						<Breadcrumb.Item class="hidden md:block">
-							{#if page.route.id !== '/(authenticated)/[[tenant]]/logs'}
-								<Breadcrumb.Link
-									data-sveltekit-preload-data="hover"
-									href={resolveRoute('/[[tenant]]/logs', { tenant: page.params.tenant })}
-								>
-									{m.active_late_lemming_feast()}
-								</Breadcrumb.Link>
-							{:else}
-								<Breadcrumb.Page>{m.active_late_lemming_feast()}</Breadcrumb.Page>
-							{/if}
-						</Breadcrumb.Item>
-						{#if page.route.id === '/(authenticated)/[[tenant]]/logs/[id]'}
-							<Breadcrumb.Separator class="hidden md:block" />
-							<Breadcrumb.Item>
-								<Breadcrumb.Page>{page.params.id}</Breadcrumb.Page>
+						{#if page.route.id === '/(authenticated)/'}
+							<Breadcrumb.Item class="hidden md:block">Tenants</Breadcrumb.Item>
+						{:else}
+							<Breadcrumb.Item class="hidden md:block">
+								{page.params.tenant}
 							</Breadcrumb.Item>
+							<Breadcrumb.Separator class="hidden md:block" />
+							<Breadcrumb.Item class="hidden md:block">
+								{#if page.route.id !== '/(authenticated)/[[tenant]]/logs'}
+									<Breadcrumb.Link
+										data-sveltekit-preload-data="hover"
+										href={resolveRoute('/[[tenant]]/logs', { tenant: page.params.tenant })}
+									>
+										{m.active_late_lemming_feast()}
+									</Breadcrumb.Link>
+								{:else}
+									<Breadcrumb.Page>{m.active_late_lemming_feast()}</Breadcrumb.Page>
+								{/if}
+							</Breadcrumb.Item>
+							{#if page.route.id === '/(authenticated)/[[tenant]]/logs/[id]'}
+								<Breadcrumb.Separator class="hidden md:block" />
+								<Breadcrumb.Item>
+									<Breadcrumb.Page>{page.params.id}</Breadcrumb.Page>
+								</Breadcrumb.Item>
+							{/if}
 						{/if}
 					</Breadcrumb.List>
 				</Breadcrumb.Root>
