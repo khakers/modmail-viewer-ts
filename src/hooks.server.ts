@@ -53,7 +53,7 @@ const handleLogging: Handle = async ({ event, resolve }) => {
 
 
 
-const handleAuth: Handle = async ({ event, resolve }) => {
+const handleAuthentication: Handle = async ({ event, resolve }) => {
 	const sessionToken = event.cookies.get(auth.sessionCookieName);
 
 	if (!sessionToken) {
@@ -91,6 +91,19 @@ const handleAuth: Handle = async ({ event, resolve }) => {
 
 	return resolve(event);
 };
+
+// Redirects users to the login page if they attempt to access and authenticated route without a session
+const handleGeneralAuthorization: Handle = async ({ event, resolve }) => {
+	// Runs after the session middleware so the session is available
+	if (event.route.id?.startsWith('/(authenticated)')) {
+		if (!event.locals.session) {
+			// Redirect to login page
+			return redirect(303, '/auth/login');
+		}
+	}
+	return resolve(event);
+}
+
 
 
 // TODO refactor to supply tenant information instead
@@ -180,7 +193,7 @@ export const handle: Handle = sequence(
 	handleRequestId,
 	handleParaglide,
 	handleLogging,
-	handleAuth,
+	handleAuthentication,
 	handleInjectTenant,
 	handleTenancyAuthorization
 );
