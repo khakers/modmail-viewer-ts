@@ -1,12 +1,55 @@
-import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
+import { env } from '$env/dynamic/private';
+import { createCipheriv, createDecipheriv, randomBytes } from 'crypto';
+import { sqliteTable, text, integer, customType } from 'drizzle-orm/sqlite-core';
+
+
+function encrypt(text: Buffer, key: Buffer): Buffer {
+	const iv = randomBytes(12);
+
+	const cipher = createCipheriv('aes-256-gcm', key, iv);
+	let message = cipher.update(text);
+	message = Buffer.concat([message, cipher.final()]);
+	return Buffer.concat([iv, message, cipher.getAuthTag()]);
+}
+
+function decrypt(cipherText: Buffer, key: Buffer): Buffer {
+	const tag = cipherText.subarray(-16);
+	const iv = cipherText.subarray(0, 12);
+	const encryptedText = cipherText.subarray(12, -16);
+	const decipher = createDecipheriv('aes-256-gcm', key, iv);
+	decipher.setAuthTag(tag);
+	let text = decipher.update(encryptedText);
+	text = Buffer.concat([text, decipher.final()]);
+	return text;
+}
+
+
+const encryptedText = customType<{ data: string }>({
+	dataType() {
+		return "text";
+	},
+	fromDriver(value: unknown) {
+		return decrypt(
+			Buffer.from(value as string, "hex"),
+			Buffer.from(env.ENCRYPTION_SECRET_KEY!, "hex")
+		).toString("utf8");
+	},
+	toDriver(value: string) {
+		return encrypt(
+			Buffer.from(value, "utf8"),
+			Buffer.from(env.ENCRYPTION_SECRET_KEY!, "hex")
+		).toString("hex");
+	},
+});
+
 
 export const session = sqliteTable('session', {
 	id: text('id').primaryKey(),
 	discordUserId: text('discord_user_id')
 		.notNull(),
 	expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull(),
-	refreshToken: text('refresh_token').notNull(),
-	accessToken: text('access_token').notNull(),
+	refreshToken: encryptedText('refresh_token').notNull(),
+	accessToken: encryptedText('access_token').notNull(),
 	accessTokenExpiresAt: integer('access_token_expires_at', { mode: 'timestamp' }).notNull()
 });
 
