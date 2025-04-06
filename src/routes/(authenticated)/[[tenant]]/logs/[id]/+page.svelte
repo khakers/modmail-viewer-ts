@@ -6,14 +6,27 @@
 	import type { PageData } from './$types';
 	import { isSameDay, intlFormat, subMinutes, isAfter } from 'date-fns';
 	import Markdown from '$lib/components/markdown/markdown.svelte';
+	import type { Message } from '$lib/modmail';
 
 	const { data }: { data: PageData } = $props();
 
 	function clearSearchParams(baseUrl: string) {
-		// Clear search params from the URL to avoid confusion when navigating back
 		const url = new URL(baseUrl);
 		url.search = '';
 		return url.toString();
+	}
+
+	function shouldShowMessageProfile(message: Message, previousMessage: Message | undefined) {
+		// Show the profile if the message is the first message in the thread
+		// or if the message is from a different user than the previous message
+		// or if the message is from the same user but was sent more than 5 minutes after the previous message
+		// or if the previous message was sent differently (staff/not staff, internal, anon)
+		if (!previousMessage) return true;
+		if (message.author.id !== previousMessage.author.id) return true;
+		if (message.type !== previousMessage.type) return true;
+		if (message.author.mod !== previousMessage.author.mod) return true;
+		if (isAfter(subMinutes(message.timestamp, 5), previousMessage.timestamp)) return true;
+		return false;
 	}
 
 	const messages = $derived(
@@ -67,8 +80,7 @@
 		{/if}
 		<li class="" id={message.message_id}>
 			<DiscordMessage message={message}
-											showUserProfile={!data.document.messages[i - 1] || data.document.messages[i - 1].author.id !== message.author.id || isAfter(subMinutes(message.timestamp, 5), messages[i - 1].timestamp)} />
-			 <Markdown content={message.content} type="extended" />
+											showUserProfile={shouldShowMessageProfile(message, messages[i - 1])} />
 		</li>
 	{/each}
 </ol>
