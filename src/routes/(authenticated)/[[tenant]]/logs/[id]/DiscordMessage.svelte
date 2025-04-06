@@ -8,8 +8,13 @@
 	import VenetianMask from '@lucide/svelte/icons/venetian-mask';
 	import { m } from '$lib/paraglide/messages';
 	import { getLocale } from '$lib/paraglide/runtime';
+	import Markdown from '$lib/components/markdown/markdown.svelte';
 
-    const { message, showUserProfile }: { message: Omit<Message, 'timestamp'> & { timestamp: Date }; showUserProfile: boolean } = $props();
+	const {
+		message,
+		showUserProfile
+	}: { message: Omit<Message, 'timestamp'> & { timestamp: Date }; showUserProfile: boolean } =
+		$props();
 
 	const messageDateFormatterLong = $derived(
 		new Intl.DateTimeFormat(getLocale(), {
@@ -67,8 +72,8 @@
 		</div>
 	{/if}
 	<div class="">
-		<p class="text-base">
-			{message.content}
-		</p>
+		<div class="text-base">
+			<Markdown content={message.content} type="extended" />
+		</div>
 	</div>
 </div>

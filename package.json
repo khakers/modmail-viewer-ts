@@ -40,7 +40,9 @@
 		"eslint-config-prettier": "^10.0.1",
 		"eslint-plugin-svelte": "^3.0.0",
 		"globals": "^16.0.0",
+		"highlight.js": "^11.11.1",
 		"jsdom": "^26.0.0",
+		"marked": "^15.0.7",
 		"mode-watcher": "^0.5.1",
 		"pino-pretty": "^13.0.0",
 		"prettier": "^3.4.2",
@@ -70,7 +72,8 @@
 		"drizzle-orm": "^0.40.0",
 		"keyv": "^5.3.2",
 		"mongodb": "^6.15.0",
-		"pino": "^9.6.0"
+		"pino": "^9.6.0",
+		"svelte-inspect-value": "^0.5.0"
 	},
 	"pnpm": {
 		"onlyBuiltDependencies": [

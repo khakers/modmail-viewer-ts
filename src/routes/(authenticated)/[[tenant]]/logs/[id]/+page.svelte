@@ -1,10 +1,11 @@
 <script lang="ts">
-  import DiscordMessage from './DiscordMessage.svelte';
+	import DiscordMessage from './DiscordMessage.svelte';
 
 	import * as Avatar from '$lib/components/ui/avatar';
 	import { Badge } from '$lib/components/ui/badge';
 	import type { PageData } from './$types';
-	import { isSameDay, intlFormat, subMinutes, isAfter, isToday } from 'date-fns';
+	import { isSameDay, intlFormat, subMinutes, isAfter } from 'date-fns';
+	import Markdown from '$lib/components/markdown/markdown.svelte';
 
 	const { data }: { data: PageData } = $props();
 
@@ -65,14 +66,18 @@
 			</div>
 		{/if}
 		<li class="" id={message.message_id}>
-		<DiscordMessage message={message} showUserProfile={!data.document.messages[i - 1] || data.document.messages[i - 1].author.id !== message.author.id || isAfter(subMinutes(message.timestamp, 5), messages[i - 1].timestamp)} />
+			<DiscordMessage message={message}
+											showUserProfile={!data.document.messages[i - 1] || data.document.messages[i - 1].author.id !== message.author.id || isAfter(subMinutes(message.timestamp, 5), messages[i - 1].timestamp)} />
+			 <Markdown content={message.content} type="extended" />
 		</li>
 	{/each}
 </ol>
 {#if data.document.close_message}
 	<div class="border rounded-sm p-4 border-red-600">
-		<h3 class="text-xl">Closed by <span class="font-semibold">{data.document.closer?.name}</span> at <datetime time={data.document.closed_at}>{new Date(data.document.closed_at)}</datetime></h3>
+		<h3 class="text-xl">Closed by <span class="font-semibold">{data.document.closer?.name}</span> at
+			<time datetime={data.document.closed_at}>{new Date(data.document.closed_at)}</time>
+		</h3>
 
-		<p class="">{data.document.close_message}</p>
+		<Markdown content={data.document.close_message} type="extended" />
 	</div>
 {/if}

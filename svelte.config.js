@@ -7,12 +7,12 @@ const config = {
 	preprocess: vitePreprocess(),
 	kit: {
 		adapter: adapter(),
-		csp: {
-			directives: {
-				'script-src': ['self'],
-				'media-src': ['self', "cdn.discordapp.com", "media.discordapp.com"],
-			},
-		},
+		// csp: {
+		// 	directives: {
+		// 		'script-src': ['self'],
+		// 		'media-src': ['self', "cdn.discordapp.com", "media.discordapp.com"],
+		// 	},
+		// },
 		version: {
 			name: child_process.execSync('git rev-parse HEAD').toString().trim()
 		}

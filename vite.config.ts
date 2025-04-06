@@ -5,9 +5,9 @@ import { defineConfig } from 'vite';
 
 export default defineConfig({
 	build: {
-		target: "ES2022"
+		target: "ES2024"
 	},
-	optimizeDeps: { esbuildOptions: { target: "ES2022" } },
+	optimizeDeps: { esbuildOptions: { target: "ES2024" } },
 	server: {
 		watch: {
 			ignored: [
