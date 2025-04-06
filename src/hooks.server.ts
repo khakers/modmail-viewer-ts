@@ -54,10 +54,12 @@ const handleLogging: Handle = async ({ event, resolve }) => {
 
 
 const handleAuthentication: Handle = async ({ event, resolve }) => {
+	if (event.url.pathname === "/favicon.ico") {
+		return resolve(event);
+	}
 	const sessionToken = event.cookies.get(auth.sessionCookieName);
 
 	if (!sessionToken) {
-		// event.locals.user = null;
 		event.locals.session = null;
 		if (event.route.id !== null && !event.route.id.startsWith('/auth')) {
 			return redirect(302, '/auth/login');
@@ -73,7 +75,6 @@ const handleAuthentication: Handle = async ({ event, resolve }) => {
 		auth.deleteSessionTokenCookie(event);
 	}
 
-	// event.locals.user = user;
 	event.locals.session = session;
 
 	// add discord user information

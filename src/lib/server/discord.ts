@@ -4,6 +4,7 @@ import { Cacheable, KeyvCacheableMemory } from "cacheable";
 import { env } from "$env/dynamic/private";
 import { DISCORD_API_URL } from "$env/static/private";
 import KeyvMemcache from "@keyv/memcache";
+import { addMinutes, isAfter, isBefore } from "date-fns";
 
 export type DiscordUser = {
     id: string,
@@ -79,15 +80,7 @@ if (env.MEMCACHED_URI !== undefined) {
 }
 const cacheable = new Cacheable({ primary, secondary: env.MEMCACHED_URI ? new KeyvMemcache(env.MEMCACHED_URI) : undefined });
 
-cacheable.on('cacheHit', (key) => {
-    logger.trace({ key }, `Cache hit for Discord API call`);
-});
-cacheable.on('cacheMiss', (key) => {
-    logger.trace({ key }, `Cache miss for Discord API call`);
-});
-
-
-const ratelimitMap = new Map<string, { reset: Date, remaining: number, limit: number, bucket: string }>();
+const ratelimitMap = new Map<string, { reset: Date, remaining: number, limit: number, bucket: string | null }>();
 
 function trackLimit(response: Response, endpoint: string) {
     const remaining = response.headers.get('X-RateLimit-Remaining');
@@ -106,7 +99,7 @@ function getRateLimitInfo(endpoint: string): { reset: Date, remaining: number, l
     const rateLimitInfo = ratelimitMap.get(endpoint);
     if (rateLimitInfo) {
         // Check if the rate limit has expired
-        if (new Date() > rateLimitInfo.reset) {
+        if (isAfter(new Date(), rateLimitInfo.reset)) {
             ratelimitMap.delete(endpoint); // Remove expired rate limit info
             return undefined; // Rate limit info is no longer valid
         }
@@ -160,14 +153,17 @@ export class DiscordApi {
         const now = new Date();
         const expiresAt = this.discordToken.accessTokenExpiresAt;
         // Allow a 2 minute buffer to account for clock skew
-        if (expiresAt > new Date(now.getTime() + 2 * 60 * 1000)) {
+        logger.debug({ expiresAt, now }, `Checking if access token is expired for user ${this.discordToken.discordUserId}`);
+        // if now+2 min is after token expiration, refresh the token
+        if (isBefore(addMinutes(now, 2), expiresAt)) {
             return; // Access token is still valid
+        } else {
+            logger.debug({ user: this.discordToken.discordUserId }, `Access token expired for user ${this.discordToken.discordUserId}. Refreshing...`);
+            const refreshReponse = await discord.refreshAccessToken(this.discordToken.refreshToken)
+            this.discordToken.accessToken = refreshReponse.accessToken();
+            this.discordToken.accessTokenExpiresAt = refreshReponse.accessTokenExpiresAt();
+            await updateAccessToken(this.discordToken.discordUserId, this.discordToken.accessToken, this.discordToken.accessTokenExpiresAt);
         }
-        logger.debug({ user: this.discordToken.discordUserId }, `Access token expired for user ${this.discordToken.discordUserId}. Refreshing...`);
-        const foo = await discord.refreshAccessToken(this.discordToken.refreshToken)
-        this.discordToken.accessToken = foo.accessToken();
-        this.discordToken.accessTokenExpiresAt = foo.accessTokenExpiresAt();
-        await updateAccessToken(this.discordToken.discordUserId, this.discordToken.accessToken, this.discordToken.accessTokenExpiresAt);
     }
 
     async getDiscordUser(): Promise<DiscordUser> {
@@ -379,7 +375,7 @@ export class CacheableDiscordApi {
         return res[0] || undefined;
     }
 
-    async getGuildInfo(guildId: string | bigint): Promise<PartialGuild| undefined> {
+    async getGuildInfo(guildId: string | bigint): Promise<PartialGuild | undefined> {
         return this.cacheableGetGuildInfo(guildId);
     }
     // async getUserOIDC(): Promise<DiscordUser> {
