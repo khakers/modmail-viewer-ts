@@ -24,6 +24,17 @@ The slug is the field used in the url to access resources belonging to that tena
 ]
 ```
 
+## environment variables
+
+DISCORD_CLIENT_ID
+DISCORD_CLIENT_SECRET
+OAUTH_REDIRECT_URI=http://localhost:5173/auth/login/discord/callback
+
+PUBLIC_S3_URL
+PUBLIC_S3_PRESIGNED use pre-signed s3 URLs for serving assets
+S3_ACCESS_KEY required for generating pre-signed s3 URL
+S3_SECRET_KEY required for generating pre-signed s3 URL
+
 ## Developing
 
 
