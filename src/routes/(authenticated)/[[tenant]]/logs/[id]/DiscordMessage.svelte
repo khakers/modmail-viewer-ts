@@ -9,6 +9,7 @@
 	import { m } from '$lib/paraglide/messages';
 	import { getLocale } from '$lib/paraglide/runtime';
 	import Markdown from '$lib/components/markdown/markdown.svelte';
+	import MessageAttachments from './MessageAttachments.svelte';
 
 	const {
 		message,
@@ -75,5 +76,8 @@
 		<div class="text-base">
 			<Markdown content={message.content} type="extended" />
 		</div>
+	</div>
+	<div class="max-w-[600px]">
+		<MessageAttachments attachments={message.attachments} />
 	</div>
 </div>

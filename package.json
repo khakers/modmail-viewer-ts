@@ -71,7 +71,9 @@
 		"cacheable": "^1.8.9",
 		"drizzle-orm": "^0.40.0",
 		"keyv": "^5.3.2",
+		"minio": "^8.0.5",
 		"mongodb": "^6.15.0",
+		"photoswipe": "^5.4.4",
 		"pino": "^9.6.0",
 		"svelte-inspect-value": "^0.5.0"
 	},
