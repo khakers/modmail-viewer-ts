@@ -4,6 +4,7 @@ import { readFileSync } from "fs";
 import { MongoClient } from "mongodb";
 import { z } from "zod";
 import { TenantSchema, type TenantConfig } from "../tenantSchema";
+import { building } from "$app/environment";
 
 
 // TODO each slug and id in the schema must be unique and should not be duplicated in the JSON file.
@@ -13,33 +14,37 @@ const tenantArraySchema = z.array(TenantSchema).readonly();
 const TenantMongodbInstances: Map<string, { tenant: TenantConfig, MongodbClient: MongoClient }> = new Map();
 
 
+
 const jsonPath = env.TENANT_JSON;
-logger.info("multitenancy is enabled");
-if (!jsonPath) {
-    logger.fatal("TENANT_JSON is not set but multitenancy is enabled");
-    throw new Error("TENANT_JSON undefined");
+if (!building) {
+
+    logger.info("multitenancy is enabled");
+    if (!jsonPath) {
+        logger.fatal("TENANT_JSON is not set but multitenancy is enabled");
+        throw new Error("TENANT_JSON undefined");
+    }
+    logger.info(`loading tenants from ${jsonPath}`);
+    // load tenants from file
+    const file = readFileSync(jsonPath, "utf-8")
+
+    const tenants = JSON.parse(file);
+
+    if (!tenants) {
+        logger.fatal("Failed to parse TENANT_JSON file");
+        throw new Error("Failed to parse TENANT_JSON file");
+    }
+
+    logger.trace({ tenants }, "Parsed tenant JSON"); // Log the parsed tenants for debugging
+
+    const parsedTenancyConfig = tenantArraySchema.parse(tenants);
+
+    for (const tenant of parsedTenancyConfig) {
+        const uri = tenant.connection_uri;
+        const client = new MongoClient(uri);
+        TenantMongodbInstances.set(tenant.slug, { MongodbClient: client, tenant });
+    }
+
 }
-logger.info(`loading tenants from ${jsonPath}`);
-// load tenants from file
-const file = readFileSync(jsonPath, "utf-8")
-
-const tenants = JSON.parse(file);
-
-if (!tenants) {
-    logger.fatal("Failed to parse TENANT_JSON file");
-    throw new Error("Failed to parse TENANT_JSON file");
-}
-
-logger.trace({ tenants }, "Parsed tenant JSON"); // Log the parsed tenants for debugging
-
-const parsedTenancyConfig = tenantArraySchema.parse(tenants);
-
-for (const tenant of parsedTenancyConfig) {
-    const uri = tenant.connection_uri;
-    const client = new MongoClient(uri);
-    TenantMongodbInstances.set(tenant.slug, { MongodbClient: client, tenant });
-}
-
 
 export function getMongodbClient(tenantSlug: string | undefined): MongoClient | undefined {
     if (!tenantSlug) {

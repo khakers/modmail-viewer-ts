@@ -1,0 +1,22 @@
+# Ignore everything
+*
+*/
+Allowlist
+!/src
+!/static
+!/drizzle
+!/project.inlang
+!/messages
+!drizzle.config.ts
+!package.json
+!pnpm-lock.yaml
+!postcss.config.js
+!svelte.config.js
+!tailwind.config.ts
+!tsconfig.json
+!vite.config.ts
+!.env.production
+
+!.git
+
+node_modules

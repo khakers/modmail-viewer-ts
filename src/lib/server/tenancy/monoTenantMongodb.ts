@@ -1,6 +1,7 @@
 import { env } from "$env/dynamic/private";
 import { MongoClient } from "mongodb";
-import type { Tenant } from "./multitenantMongodb";
+import { building } from "$app/environment";
+import type { Tenant } from "./tenant";
 
 
 export class MultitenancyDisabledError extends Error {
@@ -12,13 +13,13 @@ export class MultitenancyDisabledError extends Error {
 // if mongodb uri is set, don't use multitenancy
 // if mongodb uri is not set, use multitenancy
 
-if (!env.MONGODB_URI) {
+if (!env.MONGODB_URI && !building) {
     throw new Error("MONGODB_URI is not set");
 }
 
 
 const uri = env.MONGODB_URI;
-if (!uri) {
+if (!uri && !building) {
     throw new Error("MONGODB_URI is not set");
 }
 
@@ -29,7 +30,7 @@ const tenant: Tenant = {
     guild_id: env.GUILD_ID,
 }
 
-export const MongodbClient = new MongoClient(uri);
+export const MongodbClient: MongoClient = building === false ?  new MongoClient(uri) : undefined;
 
 export function getMongodbClient(tenant: string | undefined): MongoClient {
     if (tenant) {

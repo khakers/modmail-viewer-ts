@@ -2,7 +2,7 @@ import { createSession, discord, generateSessionToken, setSessionTokenCookie } f
 import { ArcticFetchError, OAuth2RequestError, OAuth2Tokens } from 'arctic';
 import type { PageServerLoad } from './$types';
 import { CacheableDiscordApi } from '$lib/server/discord';
-import { redirect } from '@sveltejs/kit';
+import { isHttpError, isRedirect, redirect } from '@sveltejs/kit';
 import { error } from '$lib/server/skUtils';
 
 export const load = (async (event) => {
@@ -46,22 +46,31 @@ export const load = (async (event) => {
         accessTokenExpiresAt: tokens.accessTokenExpiresAt(),
         refreshToken: tokens.refreshToken()
     });
-    
-    const discordUser = await discordApi.getDiscordUser()
+    try {
+        const discordUser = await discordApi.getDiscordUser()
+
+        const user = {
+            discordUserId: discordUser.id,
+            discordUsername: discordUser.username,
+            accessToken: tokens.accessToken(),
+            accessTokenExpiresAt: tokens.accessTokenExpiresAt(),
+            refreshToken: tokens.refreshToken()
+        }
+
+        const sessionToken = generateSessionToken();
+        const session = await createSession(sessionToken, user);
+        logger.trace("session created");
+        setSessionTokenCookie(event, sessionToken, session.expiresAt);
+
+        redirect(303, '/');
+
+    } catch (e) {
+        if (isRedirect(e) || isHttpError(e)) {
+            throw e;
+        }
+        logger.error({ error: e }, 'Failed to fetch Discord user data');
+        error(500, 'Failed to fetch Discord user data', event);
+    }
     // const discordUser = await getDiscordUser(tokens.accessToken());
 
-    const user = {
-        discordUserId: discordUser.id,
-        discordUsername: discordUser.username,
-        accessToken: tokens.accessToken(),
-        accessTokenExpiresAt: tokens.accessTokenExpiresAt(),
-        refreshToken: tokens.refreshToken()
-    }
-
-    const sessionToken = generateSessionToken();
-    const session = await createSession(sessionToken, user);
-    logger.trace("session created");
-    setSessionTokenCookie(event, sessionToken, session.expiresAt);
-
-    redirect(303, '/');
 }) satisfies PageServerLoad;

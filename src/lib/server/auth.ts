@@ -25,6 +25,7 @@ export function generateSessionToken() {
 }
 
 export async function updateAccessToken(discordID: string, accessToken: string, expiresAt: Date) {
+	logger.trace({ discordID, expiresAt }, 'Updating access token');
 	// Update the access token for the user in the session table
 	const result = await db
 		.update(table.session)

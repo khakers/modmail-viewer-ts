@@ -1,4 +1,4 @@
-import { env } from '$env/dynamic/private';
+import { building } from '$app/environment';
 import { createCipheriv, createDecipheriv, randomBytes } from 'crypto';
 import { sqliteTable, text, integer, customType } from 'drizzle-orm/sqlite-core';
 
@@ -23,6 +23,12 @@ function decrypt(cipherText: Buffer, key: Buffer): Buffer {
 	return text;
 }
 
+if (!building && !process.env.ENCRYPTION_SECRET_KEY) {
+	throw new Error("ENCRYPTION_SECRET_KEY is not set");
+}
+// 'building' will probably break drizzle because it can't import that
+
+const key = building === false ? Buffer.from(process.env.ENCRYPTION_SECRET_KEY!, "hex") : Buffer.alloc(32);
 
 const encryptedText = customType<{ data: string }>({
 	dataType() {
@@ -31,13 +37,13 @@ const encryptedText = customType<{ data: string }>({
 	fromDriver(value: unknown) {
 		return decrypt(
 			Buffer.from(value as string, "hex"),
-			Buffer.from(env.ENCRYPTION_SECRET_KEY!, "hex")
+			key
 		).toString("utf8");
 	},
 	toDriver(value: string) {
 		return encrypt(
 			Buffer.from(value, "utf8"),
-			Buffer.from(env.ENCRYPTION_SECRET_KEY!, "hex")
+			key
 		).toString("hex");
 	},
 });

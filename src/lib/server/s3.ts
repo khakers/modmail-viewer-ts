@@ -1,20 +1,25 @@
+import { building } from "$app/environment";
 import { env as env } from "$env/dynamic/private";
 import { env as pub } from "$env/dynamic/public";
 import type { Attachment, Message, OpenModmailAttachment } from "$lib/modmail";
 import { Client } from "minio";
 
-const presigned = pub.PUBLIC_S3_PRESIGNED === 'true';
+// This is incredibly annoying, but sveltekit runs everything and crashes on build if this isn't guarded, 
+// and the error will not be in this file
+if (!building) {
+    const presigned = pub.PUBLIC_S3_PRESIGNED === 'true';
 
-const s3Endpoint = new URL(pub.PUBLIC_S3_URL);
+    const s3Endpoint = new URL(pub.PUBLIC_S3_URL);
 
-const minioClient = presigned ? new Client({
-    endPoint: s3Endpoint.hostname,
-    port: parseInt(s3Endpoint.port),
-    useSSL: s3Endpoint.protocol === 'https:',
-    accessKey: env.S3_ACCESS_KEY,
-    secretKey: env.S3_SECRET_KEY,
-}) : undefined;
+    const minioClient = presigned ? new Client({
+        endPoint: s3Endpoint.hostname,
+        port: parseInt(s3Endpoint.port),
+        useSSL: s3Endpoint.protocol === 'https:',
+        accessKey: env.S3_ACCESS_KEY,
+        secretKey: env.S3_SECRET_KEY,
+    }) : undefined;
 
+}
 async function generatePresignedS3Url(attachment: OpenModmailAttachment) {
     if (!minioClient) throw new Error("Minio client not configured for presigned URLs");
     return await minioClient.presignedGetObject(attachment.s3.bucket, attachment.s3.object, 24 * 60 * 60);

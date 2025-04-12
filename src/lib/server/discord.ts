@@ -59,7 +59,7 @@ export type DiscordOIDC = {
 }
 
 type DiscordToken = {
-    discordUserId: string;
+    discordUserId: string | undefined;
     refreshToken: string;
     accessToken: string;
     accessTokenExpiresAt: Date;
@@ -109,6 +109,7 @@ function getRateLimitInfo(endpoint: string): { reset: Date, remaining: number, l
     return undefined;
 }
 
+// TODO some rate limites are global so the string identifiers should be seperate
 function isThisEndpointRateLimited(endpoint: string): boolean {
     // Check if the endpoint is currently rate limited
     const rateLimitInfo = getRateLimitInfo(endpoint);
@@ -149,6 +150,7 @@ export class DiscordApi {
 
     // todo sync this the session so stored data is kept in sync
     private async checkTokenRefresh(): Promise<void> {
+        if (this.discordToken.discordUserId === undefined) return;
         // if the access token is still valid (minus a small buffer for clock skew), return early
         const now = new Date();
         const expiresAt = this.discordToken.accessTokenExpiresAt;
@@ -169,7 +171,7 @@ export class DiscordApi {
     async getDiscordUser(): Promise<DiscordUser> {
         await this.checkTokenRefresh();
 
-        if (isThisEndpointRateLimited("/users/@me+" + this.discordToken.discordUserId)) {
+        if (isThisEndpointRateLimited("/users/@me+" + (this.discordToken.discordUserId ?? crypto.randomUUID()))) {
             // If the endpoint is rate limited, log a warning and return early
             logger.warn({ userId: this.discordToken.discordUserId }, `Cannot fetch Discord user info: endpoint is rate limited`);
             throw new Error("Rate limit exceeded for /users/@me");
@@ -181,7 +183,7 @@ export class DiscordApi {
             }
         });
 
-        trackLimit(response, `/users/@me+${this.discordToken.discordUserId}`); // scope endpoint to this user id
+        trackLimit(response, `/users/@me+${this.discordToken.discordUserId ?? crypto.randomUUID}`); // scope endpoint to this user id
 
         if (!response.ok) {
             if (response.status === 429) {
@@ -246,7 +248,7 @@ export class DiscordApi {
     async getUserGuilds(): Promise<Array<PartialGuild>> {
         await this.checkTokenRefresh();
 
-        if (isThisEndpointRateLimited("/users/@me/guilds+" + this.discordToken.discordUserId)) {
+        if (isThisEndpointRateLimited("/users/@me/guilds+" + (this.discordToken.discordUserId ?? crypto.randomUUID()))) {
             // If the endpoint is rate limited, log a warning and return early
             logger.warn({ userId: this.discordToken.discordUserId }, `Cannot fetch Discord user guilds: endpoint is rate limited`);
             throw new Error("Rate limit exceeded for /users/@me/guilds");

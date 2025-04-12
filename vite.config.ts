@@ -2,6 +2,8 @@ import { paraglideVitePlugin } from '@inlang/paraglide-js';
 import { svelteTesting } from '@testing-library/svelte/vite';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
+import dotenv from 'dotenv';
+
 
 export default defineConfig({
 	build: {
@@ -18,6 +20,13 @@ export default defineConfig({
 			]
 		}
 	},
+	// I had to do this to get process.env to have variables because I can't import svelte env in schema.ts
+	define: (() => {
+		const result = {};
+		const env = dotenv.config().parsed;
+		Object.entries(env).forEach(([k, v]) => (result[`process.env.${k}`] = `'${v}'`));
+		return result;
+	})(),
 	plugins: [
 		sveltekit(),
 		paraglideVitePlugin({
