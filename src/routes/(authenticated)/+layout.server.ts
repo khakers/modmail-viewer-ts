@@ -1,4 +1,3 @@
-import { discord } from '$lib/server/auth';
 import { CacheableDiscordApi } from '$lib/server/discord';
 import { getPermisionOrdinal } from '$lib/server/modmail/permissions';
 import { error } from '$lib/server/skUtils';
@@ -15,6 +14,7 @@ export const load = (async (event) => {
         error(401, 'Unauthorized: Session not found', event);
     }
 
+    const loadStart = performance.now();
 
     const discordApi = CacheableDiscordApi.fromSession(session);
 
@@ -22,10 +22,13 @@ export const load = (async (event) => {
 
     const guildIds = guilds.map(guild => guild.id);
 
+    logger.debug({ loadStart }, `Guilds loaded in ${performance.now() - loadStart} ms`);
+
     const tenants = await getTenants(guildIds);
 
+    const roleFetchStart = performance.now();
 
-    const discordServerRoles = (await Promise.all(
+    const guildRoles = (await Promise.all(
         tenants.map(tenant =>
             discordApi.getGuildUserInfo(tenant.guildId)
                 .then(guildUserInfo => ({
@@ -35,12 +38,21 @@ export const load = (async (event) => {
                 }))
         )));
 
+    const roleFetchEnd = performance.now();
+
     const permissionLevels = (await Promise.all(
-        discordServerRoles.map(a => a.tenant.getPermissionsLevel(a.roles, session.discordUserId)
-            .then(permissionLevel => ({ tenant: a.tenant, permissionLevel }))
+        guildRoles.map(a =>
+            a.tenant.getPermissionsLevel(a.roles, session.discordUserId)
+                .then(permissionLevel => ({ tenant: a.tenant, permissionLevel }))
+                .catch((err) => {
+                    // Catch any errors in mongodb instances
+                    logger.error({err, tenant:a.tenant.slug},'encountered an error getting permissions for tenant')
+                    return ({ tenant: a.tenant, permissionLevel: undefined});
+                })
         )
     ));
 
+    const permissionFetchEnd = performance.now();
 
 
     const filteredTenants = permissionLevels
@@ -50,7 +62,8 @@ export const load = (async (event) => {
             slug: item.tenant.slug,
             name: item.tenant.name,
             guildId: item.tenant.guildId,
-            permissionLevel: item.permissionLevel
+            permissionLevel: item.permissionLevel,
+            description: item.tenant.description
         }));
 
     const tenantInfo = filteredTenants
@@ -58,6 +71,10 @@ export const load = (async (event) => {
             return { tenant: tenant, guild: guilds.find(server => server.id === tenant.guildId) };
         })
         .filter(a => a.guild !== undefined);
+
+    const loadEnd = performance.now();
+
+    logger.debug({ userGulds: roleFetchStart - loadStart, roleFetch: roleFetchEnd - roleFetchStart, PermissionFetch: roleFetchEnd - permissionFetchEnd, permissionLevels: permissionFetchEnd - loadEnd }, `Tenants loaded in ${loadEnd - loadStart} ms (Guilds: ${roleFetchEnd - roleFetchStart} ms), `);
 
     //  = guilds
     //     .map(server => {
