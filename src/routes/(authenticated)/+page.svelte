@@ -24,5 +24,9 @@
 				</Card.Content>
 			</Card.Root>
 		</li>
+	{:else}
+		<div>
+			<p class="text-muted-foreground">{m.quiet_fit_wolf_pull()}</p>
+		</div>
 	{/each}
 </ul>

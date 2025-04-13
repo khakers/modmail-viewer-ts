@@ -9,7 +9,7 @@
 	import { resolveRoute } from '$app/paths';
 	import { goto, preloadData } from '$app/navigation';
 	import GuildAvatar from '../guild-avatar.svelte';
-	import { blur, fade } from 'svelte/transition';
+	import { blur } from 'svelte/transition';
 
 	let {
 		tenants: tenants
@@ -18,7 +18,7 @@
 	} = $props();
 	const sidebar = useSidebar();
 
-	let activeTeam = $derived(
+	let activeTeam: TenantInfo | undefined = $derived(
 		tenants.find((tenant) => {
 			// Find the active tenant based on the current page route
 			return tenant.tenant.slug === page.params.tenant;
@@ -39,27 +39,45 @@
 						<div
 							class="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground"
 						>
-							<GuildAvatar guild={activeTeam.guild} />
+							{#if activeTeam}
+								<GuildAvatar guild={activeTeam.guild} />
+							{:else}
+								<div class="relative flex size-10 shrink-0 overflow-hidden rounded-full"></div>
+							{/if}
 						</div>
 						<div class="grid flex-1 text-left text-sm leading-tight">
 							<div class="h-4 @container">
-								{#key activeTeam.tenant.name}
+								{#if activeTeam}
+									{#key activeTeam.tenant.name}
+										<span
+											class="truncate font-semibold @[140px]:absolute"
+											transition:blur={{ delay: 0, duration: 250 }}
+										>
+											{activeTeam.tenant.name}
+										</span>
+									{/key}
+								{:else}
 									<span
-										class="@[140px]:absolute truncate font-semibold"
+										class="truncate font-semibold @[140px]:absolute"
 										transition:blur={{ delay: 0, duration: 250 }}
 									>
-										{activeTeam.tenant.name}
+										eeeeeeeeeeee
 									</span>
-								{/key}
+								{/if}
 							</div>
 							<div class="h-4 @container">
-								{#key activeTeam.tenant.permissionLevel}
-									<span
-										class="@[140px]:absolute truncate text-xs lowercase"
-										transition:blur={{ delay: 0, duration: 250 }}
-										>{activeTeam.tenant.permissionLevel}</span
-									>
-								{/key}
+								{#if activeTeam}
+									{#key activeTeam.tenant.permissionLevel}
+										<span
+											class="truncate text-xs lowercase @[140px]:absolute"
+											transition:blur={{ delay: 0, duration: 250 }}
+										>
+											{activeTeam.tenant.permissionLevel}
+										</span>
+									{/key}
+								{:else}
+									None
+								{/if}
 							</div>
 						</div>
 						<ChevronsUpDown class="ml-auto" />
@@ -79,8 +97,8 @@
 					<DropdownMenu.Item
 						onSelect={() => goto(resolveRoute('/[[tenant]]/logs/', { tenant: tenant.tenant.slug }))}
 						class="gap-2 p-2"
-						onmouseover={()=> preloadData(resolveRoute('/[[tenant]]/logs/', { tenant: tenant.tenant.slug }))} 
-						
+						onmouseover={() =>
+							preloadData(resolveRoute('/[[tenant]]/logs/', { tenant: tenant.tenant.slug }))}
 					>
 						<!-- <a href={resolveRoute(page.route.id, {...page.params, slug: tenant.tenant.slug})}> -->
 						<div class="flex size-6 items-center justify-center rounded-sm">
@@ -91,17 +109,12 @@
 							{/key}
 						</div>
 						{tenant.tenant.name}
-						<DropdownMenu.Shortcut>⌘{index + 1}</DropdownMenu.Shortcut>
-						<!-- </a> -->
 					</DropdownMenu.Item>
+				{:else}
+					<DropdownMenu.Label>
+						{m.dry_early_grizzly_bubble()}
+					</DropdownMenu.Label>
 				{/each}
-				<!-- <DropdownMenu.Separator />
-				<DropdownMenu.Item class="gap-2 p-2">
-					<div class="flex size-6 items-center justify-center rounded-md border bg-background">
-						<Plus class="size-4" />
-					</div>
-					<div class="font-medium text-muted-foreground">Add team</div>
-				</DropdownMenu.Item> -->
 			</DropdownMenu.Content>
 		</DropdownMenu.Root>
 	</Sidebar.MenuItem>
