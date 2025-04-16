@@ -3,9 +3,14 @@ import type { TenantInfo } from "./tenantSchema";
 import { getTenant } from "./multitenantMongodb";
 import { logger } from "$lib/logger";
 import { env } from "$env/dynamic/private";
-import { getModmailPermissions, getUserPermissionLevel, type PermissionLevel } from "../modmail/permissions";
+import { getModmailPermissions, getUserPermissionLevel, type config, type PermissionLevel } from "../modmail/permissions";
 import type { MongoClient } from "mongodb";
 import { GetAllTenants } from "./sources/jsonSource";
+import { Cacheable } from "cacheable";
+import { sha256 } from "@oslojs/crypto/sha2";
+import { encodeHexLowerCase } from "@oslojs/encoding";
+import { coalesceAsync } from "../coaleseAsync";
+
 
 export const multitenancyEnabled = env.TENANT_JSON !== undefined;
 
@@ -43,15 +48,20 @@ export async function getTenantInfo(slug: string): Promise<TenantInfo> {
     }
 }
 
+const cache = new Cacheable({
+    namespace: 'tenancy'
+});
+
+
 export async function getTenants(guildIds: string[]) {
     // TODO hardcoded source
     return GetAllTenants()
-    .filter(tenant => guildIds.includes(tenant.tenant.guild_id))
-    .map(tenant => new Tenant({...tenant.tenant, mongoClient: tenant.MongodbClient}))
+        .filter(tenant => guildIds.includes(tenant.tenant.guild_id))
+        .map(tenant => new Tenant({ ...tenant.tenant, mongoClient: tenant.MongodbClient }))
 }
 
 export class Tenant {
-    private tenantData: TenantInfo & { mongoClient: MongoClient };
+    private readonly tenantData: TenantInfo & { mongoClient: MongoClient };
 
     constructor(data: TenantInfo & { mongoClient: MongoClient }) {
         this.tenantData = data;
@@ -66,7 +76,27 @@ export class Tenant {
     }
 
     async getPermissionsLevel(discordRoles: string[], discordUserId: string): Promise<PermissionLevel | undefined> {
-        const permissionMap = await getModmailPermissions(this.tenantData.mongoClient.db(), this.tenantData.bot_id);
+
+        // Cache value is unique per tenant and potentially per bot id within each tenant
+        const key = "levelPermissions::" + encodeHexLowerCase(sha256(new TextEncoder().encode(this.tenantData.slug + this.tenantData.bot_id)))
+
+        let permissionMap = await cache.get<config['level_permissions']>(key)
+
+
+        if (permissionMap === undefined) {
+            permissionMap = await coalesceAsync("tenancy::" + key, async () => {
+
+                permissionMap = await getModmailPermissions(this.tenantData.mongoClient.db(), this.tenantData.bot_id);
+
+                await cache.set(key, permissionMap, '5m')
+
+                return permissionMap;
+            });
+
+        } else {
+            logger.trace({ method: "getPermissionsLevel", key, discordUserId, tenant: this.tenantData.slug }, "cache hit")
+        }
+
         logger.trace({ permissionMap, discordUserId, discordRoles }, `Retrieved permission map for tenant "${this.slug}"`); // Log the permission map for debugging
         return getUserPermissionLevel(permissionMap, discordUserId, discordRoles);
     }
@@ -90,7 +120,7 @@ export class Tenant {
         return this.tenantData.description || "";
     }
     get botId() {
-        return this.tenantData.bot_id || this.tenantData.id; // Fallback to tenant ID if bot ID is not provided
+        return this.tenantData.bot_id;
     }
     get mongoClient() {
         return this.tenantData.mongoClient;

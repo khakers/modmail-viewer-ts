@@ -1,18 +1,20 @@
-import { Long, type Db } from "mongodb";
+import { Long, ObjectId, type Db } from "mongodb";
 
 export type PermissionLevel = "OWNER" | "ADMINISTRATOR" | "MODERATOR" | "SUPPORTER" | "REGULAR" | "ANYONE";
 
 export type config = {
-    bot_id: string;
-    log_channel_id: string;
+    _id: ObjectId
+    bot_id: Long;
+    log_channel_id: Long;
+    main_category_id: Long;
     plugins?: string[];
     level_permissions: {
-        OWNER?: string[] | number[];
-        ADMINISTRATOR?: string[] | number[];
-        MODERATOR?: string[] | number[];
-        SUPPORTER?: string[] | number[];
-        REGULAR?: string[] | number[];
-        ANYONE?: string[] | number[];
+        OWNER?: string[];
+        ADMINISTRATOR?: string[];
+        MODERATOR?: string[];
+        SUPPORTER?: string[];
+        REGULAR?: string[];
+        ANYONE?: string[];
     }
 };
 
@@ -43,7 +45,7 @@ export async function getModmailPermissions(client: Db, botId: string): Promise<
     return config.level_permissions || []; // Return the permissions array or an empty array if undefined
 }
 
-export function getUserPermissionLevel(permissions: Partial<config["level_permissions"]>, userId: string, roles: string[] | undefined): PermissionLevel | undefined {
+export function getUserPermissionLevel(permissions: Partial<config["level_permissions"]>, userId: string, roles: string[] | undefined): PermissionLevel {
     // Check if any of the user or role ids match any of the permission level ids in descending order of hierarchy
     // return the highest level of permission that matches the user
     
