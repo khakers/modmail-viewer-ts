@@ -1,4 +1,4 @@
-import { Long, ObjectId, Decimal128 } from 'mongodb';
+import { Long, ObjectId, Decimal128, Timestamp } from 'mongodb';
 
 /**
  * Recursively converts MongoDB BSON types in an object into standard JS types.
@@ -11,7 +11,7 @@ import { Long, ObjectId, Decimal128 } from 'mongodb';
  */
 export function convertBSONtoJS(value: unknown): unknown {
     if (value instanceof Long) {
-        return value.toNumber();
+        return value.toString();
     }
 
     if (value instanceof ObjectId) {
@@ -20,7 +20,11 @@ export function convertBSONtoJS(value: unknown): unknown {
 
     if (value instanceof Decimal128) {
         // parseFloat may lose precision; customize as needed.
-        return parseFloat(value.toString());
+        return value.toString();
+    }
+
+    if (value instanceof Timestamp) {
+        return value.toString();
     }
 
     if (Array.isArray(value)) {
@@ -28,7 +32,7 @@ export function convertBSONtoJS(value: unknown): unknown {
     }
 
     if (value !== null && typeof value === 'object') {
-        const result: any = {};
+        const result: object = {};
         for (const key in value) {
             if (Object.prototype.hasOwnProperty.call(value, key)) {
                 result[key] = convertBSONtoJS(value[key]);

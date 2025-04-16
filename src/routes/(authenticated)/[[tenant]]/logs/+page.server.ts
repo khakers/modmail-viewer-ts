@@ -1,10 +1,26 @@
 import { getMongodbClient } from '$lib/server/mongodb';
-import { isHttpError } from '@sveltejs/kit';
+import { isHttpError, isRedirect, redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { MultitenancyDisabledError } from '$lib/server/tenancy/monoTenantMongodb';
 import type { ModmailThread } from '$lib/modmail';
 import { convertBSONtoJS } from '$lib/bsonUtils';
 import { error } from '$lib/server/skUtils';
+import { z } from 'zod';
+import type { Filter } from 'mongodb';
+import { parseSearchParams } from 'zod-search-params';
+import { urlWithSearchParams } from '$lib/searchParamUtils';
+
+
+const statusSchema = z.enum(['all', "open", "closed"]).default("all").catch("all");
+
+const pageSchema = z.number().int().positive().default(1).catch(1);
+
+const paramsSchema = z.object({
+   status: statusSchema,
+   page: pageSchema,
+   pageSize: z.number().min(5).positive().int().default(10).catch(10),
+});
+
 
 export const load: PageServerLoad = async (event) => {
 
@@ -13,34 +29,77 @@ export const load: PageServerLoad = async (event) => {
    try {
       const client = getMongodbClient(event.params.tenant);
 
+      const params = parseSearchParams(paramsSchema, event.url.searchParams)
+
       if (!client) {
          logger.error('MongoDB client not found');
          error(404, `modmail server of id '${event.params.tenant}' not found`, event);
       }
+      const filter: Filter<ModmailThread> = {}
+
+      if (params.status && params.status !== "all") {
+         if (params.status === "open") {
+            filter["open"] = true;
+         } else {
+            filter["open"] = false;
+         }
+      }
+
 
       try {
-         const modmailThreads = await client.db().collection('logs')
-            .find()
-            .sort({ closed_at: -1, created_at: -1 })
-            .limit(10)
-            .toArray();
-         // console.log(foo);
-         //  if (!modmailThreads) {
-         //     error(404, 'Not Found');
-         //  }
+         // sort logs by closed time, last message, and creation date
+         const [threadCount, modmailThreads] = await Promise.all([
+            client.db().collection<ModmailThread>('logs').countDocuments(filter),
+            client.db().collection<ModmailThread>('logs')
+               .find(filter)
+               .sort({ created_at: -1, "messages.timestamp": -1, closed_at: -1, })
+               .skip((params.page - 1) * params.pageSize)
+               .limit(params.pageSize)
+               .toArray()
+         ]);
+
+         const pageCount = Math.ceil(threadCount / params.pageSize)
+
+         if (params.page > pageCount) {
+            redirect(307, urlWithSearchParams(event.url, [["page", '1']]))
+         }
+
+         if (!modmailThreads) {
+            error(500, 'Failed to retrieve threads', event);
+         }
+
+         const convertedThreads = convertBSONtoJS(modmailThreads) as ModmailThread[];
+
+         const threads = convertedThreads.map(thread => {
+            const messageCount = thread.messages.length;
+            thread.messages = thread.messages.length > 1
+               ? [thread.messages[0], thread.messages[thread.messages.length - 1]]
+               : thread.messages;
+               return { message_count: messageCount, ...thread}
+         })
+         // for (const thread of convertedThreads) {
+         //    thread["message_count"] = thread.messages.length;
+         //    thread.messages = thread.messages.length > 1
+         //       ? [thread.messages[0], thread.messages[thread.messages.length - 1]]
+         //       : thread.messages
+         // }
 
          return {
-            threads: convertBSONtoJS(modmailThreads) as ModmailThread[]
+            page: params.page,
+            pageCount: Math.ceil(threadCount / params.pageSize),
+            statusFilter: params.status,
+            threadCount,
+            threads: threads
          };
       } catch (err) {
-         if (isHttpError(err)) {
+         if (isHttpError(err) || isRedirect(err)) {
             throw err;
          }
-         logger.error(err);
+         logger.error({ err }, "encountered an error trying to fetch mongodb data");
          error(500, 'Internal Server Error', event);
       }
    } catch (err) {
-      if (isHttpError(err)) {
+      if (isHttpError(err) || isRedirect(err)) {
          throw err;
       }
       if (err instanceof MultitenancyDisabledError) {

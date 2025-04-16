@@ -6,10 +6,10 @@ import { Client } from "minio";
 
 // This is incredibly annoying, but sveltekit runs everything and crashes on build if this isn't guarded, 
 // and the error will not be in this file
-if (!building) {
-    const presigned = pub.PUBLIC_S3_PRESIGNED === 'true';
+// if (!building) {
+    const presigned = !building && pub.PUBLIC_S3_PRESIGNED === 'true';
 
-    const s3Endpoint = new URL(pub.PUBLIC_S3_URL);
+    const s3Endpoint = new URL(pub.PUBLIC_S3_URL ?? "localhost");
 
     const minioClient = presigned ? new Client({
         endPoint: s3Endpoint.hostname,
@@ -19,7 +19,7 @@ if (!building) {
         secretKey: env.S3_SECRET_KEY,
     }) : undefined;
 
-}
+// }
 async function generatePresignedS3Url(attachment: OpenModmailAttachment) {
     if (!minioClient) throw new Error("Minio client not configured for presigned URLs");
     return await minioClient.presignedGetObject(attachment.s3.bucket, attachment.s3.object, 24 * 60 * 60);

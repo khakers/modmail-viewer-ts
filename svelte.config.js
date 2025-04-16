@@ -6,6 +6,9 @@ import * as child_process from 'node:child_process';
 const config = {
 	preprocess: vitePreprocess(),
 	kit: {
+		prerender: {
+			entries:[],
+		},
 		adapter: adapter(),
 		// csp: {
 		// 	directives: {
@@ -15,7 +18,7 @@ const config = {
 		// },
 		version: {
 			name: child_process.execSync('git rev-parse HEAD').toString().trim()
-		}
+		},
 	}
 };
 
