@@ -71,18 +71,13 @@ export const load: PageServerLoad = async (event) => {
          const convertedThreads = convertBSONtoJS(modmailThreads) as ModmailThread[];
 
          const threads = convertedThreads.map(thread => {
+            // Trim all messages but first and last to reduce unnecesary transferred data
             const messageCount = thread.messages.length;
             thread.messages = thread.messages.length > 1
                ? [thread.messages[0], thread.messages[thread.messages.length - 1]]
                : thread.messages;
                return { message_count: messageCount, ...thread}
          })
-         // for (const thread of convertedThreads) {
-         //    thread["message_count"] = thread.messages.length;
-         //    thread.messages = thread.messages.length > 1
-         //       ? [thread.messages[0], thread.messages[thread.messages.length - 1]]
-         //       : thread.messages
-         // }
 
          return {
             page: params.page,

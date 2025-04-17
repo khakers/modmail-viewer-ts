@@ -10,6 +10,7 @@
 	import { getLocale } from '$lib/paraglide/runtime';
 	import Markdown from '$lib/components/markdown/markdown.svelte';
 	import MessageAttachments from './MessageAttachments.svelte';
+	import { ShieldUser } from '@lucide/svelte';
 
 	const {
 		message,
@@ -50,18 +51,20 @@
 			<!-- message type badges -->
 			<div class="flex flex-row gap-x-1 align-baseline">
 				{#if message.author.mod}
-					<Badge>{m.salty_game_jaguar_slurp()}</Badge>
+					<Badge variant="destructive">
+						<ShieldUser class="me-2 h-4 w-4" />{m.salty_game_jaguar_slurp()}
+					</Badge>
 				{/if}
 				{#if message.type === 'system'}
-					<Badge variant="outline"
-						><BotMessageSquare class="me-2 h-4 w-4" />{m.basic_calm_tuna_flip()}</Badge
-					>
+					<Badge variant="secondary">
+						<BotMessageSquare class="me-2 h-4 w-4" />{m.basic_calm_tuna_flip()}
+					</Badge>
 				{:else if message.type === 'internal'}
-					<Badge variant="outline"><EyeOff class="me-2 h-4 w-4" />{m.tidy_such_mole_dance()}</Badge>
+					<Badge variant="secondary"><EyeOff class="me-2 h-4 w-4" />{m.tidy_such_mole_dance()}</Badge>
 				{:else if message.type === 'anonymous'}
-					<Badge variant="outline"
-						><VenetianMask class="me-2 h-4 w-4" />{m.broad_active_pony_savor()}</Badge
-					>
+					<Badge variant="secondary">
+						<VenetianMask class="me-2 h-4 w-4" />{m.broad_active_pony_savor()}
+					</Badge>
 				{/if}
 			</div>
 		</div>

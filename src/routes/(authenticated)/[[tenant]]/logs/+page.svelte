@@ -90,7 +90,7 @@
 									<UserAvatar user={thread.recipient} class="size-10" />
 									<div class="space-y-1">
 										<h4 class="text-sm font-semibold">{thread.recipient.name}</h4>
-										<h5 class="text-sm">Last message:</h5>
+										<h5 class="text-sm">{m.agent_moving_anteater_jump()}</h5>
 										<p class="text-sm">{thread.messages[thread.messages.length - 1]?.content}</p>
 										<div class="flex items-center pt-1">
 											<!-- <CalendarDays class="mr-2 size-4 opacity-70" /> -->
