@@ -10,14 +10,13 @@ declare global {
 		interface Locals {
 			logger: pino.Logger;
 			requestId: string;
-			// user: import('$lib/server/auth').SessionValidationResult['user'];
+			discordAccessTokens: import('$lib/server/auth').SessionValidationResult['user'];
 			user: {
 				discordUserId: string; // The Discord user ID
 				username: string; // The Discord username
 				discriminator: string; // The Discord discriminator (e.g., "1234")
 				avatar: string | null; // The Discord avatar URL or null if no avatar is set
-				}
-				// TODO drop refresh token from this. app can manually grab it from db if needed
+			}
 			session: import('$lib/server/auth').SessionValidationResult['session'];
 			Tenant?: Tenant; // The tenant information for the current request, if applicable
 		}

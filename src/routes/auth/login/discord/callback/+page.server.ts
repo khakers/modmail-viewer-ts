@@ -41,28 +41,36 @@ export const load = (async (event) => {
     }
 
     const discordApi = new CacheableDiscordApi({
-        discordUserId: undefined,
+        uid: undefined,
         accessToken: tokens.accessToken(),
         accessTokenExpiresAt: tokens.accessTokenExpiresAt(),
-        refreshToken: tokens.refreshToken()
     });
     try {
         const discordUser = await discordApi.getDiscordUser()
 
         const user = {
-            discordUserId: discordUser.id,
+            uid: discordUser.id,
             discordUsername: discordUser.username,
             accessToken: tokens.accessToken(),
             accessTokenExpiresAt: tokens.accessTokenExpiresAt(),
             refreshToken: tokens.refreshToken()
         }
 
-        const sessionToken = generateSessionToken();
-        const session = await createSession(sessionToken, user);
-        logger.trace("session created");
-        setSessionTokenCookie(event, sessionToken, session.expiresAt);
+        try {
+            const sessionToken = generateSessionToken();
+            const session = await createSession(sessionToken, user);
+            logger.trace("session created");
+            setSessionTokenCookie(event, sessionToken, session.expiresAt);
+            redirect(303, '/');
 
-        redirect(303, '/');
+        } catch (e) {
+            if (isRedirect(e) || isHttpError(e)) {
+                throw e;
+            } else {
+                logger.error({ error: e }, 'session creation failed');
+                error(500, 'session creation failed', event);
+            }
+        }
 
     } catch (e) {
         if (isRedirect(e) || isHttpError(e)) {

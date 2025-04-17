@@ -16,7 +16,7 @@ export const load = (async (event) => {
 
     const loadStart = performance.now();
 
-    const discordApi = CacheableDiscordApi.fromSession(session);
+    const discordApi = CacheableDiscordApi.fromSession(event.locals.discordAccessTokens);
 
     const guilds = await discordApi.getUserGuilds();
 

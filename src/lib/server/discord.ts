@@ -1,10 +1,10 @@
-import { discord, updateAccessToken } from "./auth";
+import { discord, getDiscordRefreshToken, updateAccessToken } from "./auth";
 import { logger } from "$lib/logger";
 import { Cacheable, KeyvCacheableMemory } from "cacheable";
 import { env } from "$env/dynamic/private";
 import { DISCORD_API_URL } from "$env/static/private";
 import KeyvMemcache from "@keyv/memcache";
-import { addMinutes, isAfter, isBefore } from "date-fns";
+import { addMinutes, isAfter, isPast } from "date-fns";
 
 export type DiscordUser = {
     id: string,
@@ -58,8 +58,8 @@ export type DiscordOIDC = {
     locale: string;
 }
 
-type DiscordToken = {
-    discordUserId: string | undefined;
+interface DiscordToken {
+    uid: string | undefined;
     refreshToken: string;
     accessToken: string;
     accessTokenExpiresAt: Date;
@@ -127,22 +127,20 @@ const API_ENDPOINT = DISCORD_API_URL === undefined ? "https://discord.com/api/v1
 
 
 export class DiscordApi {
-    protected discordToken: DiscordToken;
+    protected discordToken: Omit<DiscordToken, 'refreshToken'>;
 
-    constructor(token: DiscordToken) {
+    constructor(token: Omit<DiscordToken, 'refreshToken'>) {
         this.discordToken = token;
     }
 
     static fromSession(session: {
-        discordUserId: string;
+        uid: string;
         accessToken: string;
-        refreshToken: string;
         accessTokenExpiresAt: Date;
     }) {
         // Create an instance of DiscordApi from a session object
         return new DiscordApi({
-            discordUserId: session.discordUserId,
-            refreshToken: session.refreshToken,
+            uid: session.uid,
             accessToken: session.accessToken,
             accessTokenExpiresAt: session.accessTokenExpiresAt
         });
@@ -150,30 +148,32 @@ export class DiscordApi {
 
     // todo sync this the session so stored data is kept in sync
     private async checkTokenRefresh(): Promise<void> {
-        if (this.discordToken.discordUserId === undefined) return;
+        if (this.discordToken.uid === undefined) return;
         // if the access token is still valid (minus a small buffer for clock skew), return early
-        const now = new Date();
+        const now = Date.now();
         const expiresAt = this.discordToken.accessTokenExpiresAt;
         // Allow a 2 minute buffer to account for clock skew
-        logger.debug({ expiresAt, now }, `Checking if access token is expired for user ${this.discordToken.discordUserId}`);
+        logger.trace({ expiresAt, now }, `Checking if access token is expired for user ${this.discordToken.uid}`);
         // if now+2 min is after token expiration, refresh the token
-        if (isBefore(addMinutes(now, 2), expiresAt)) {
-            return; // Access token is still valid
-        } else {
-            logger.debug({ user: this.discordToken.discordUserId }, `Access token expired for user ${this.discordToken.discordUserId}. Refreshing...`);
-            const refreshReponse = await discord.refreshAccessToken(this.discordToken.refreshToken)
+        // if token is already expired or will expire within 2 minutes
+        if (isPast(expiresAt) || isAfter(addMinutes(now, 2), expiresAt)) {
+            logger.debug({ user: this.discordToken.uid }, `Access token expired for user ${this.discordToken.uid}. Refreshing...`);
+            const token = await getDiscordRefreshToken(this.discordToken.uid)
+            const refreshReponse = await discord.refreshAccessToken(token)
+
             this.discordToken.accessToken = refreshReponse.accessToken();
             this.discordToken.accessTokenExpiresAt = refreshReponse.accessTokenExpiresAt();
-            await updateAccessToken(this.discordToken.discordUserId, this.discordToken.accessToken, this.discordToken.accessTokenExpiresAt);
+
+            await updateAccessToken(this.discordToken.uid, this.discordToken.accessToken, this.discordToken.accessTokenExpiresAt);
         }
     }
 
     async getDiscordUser(): Promise<DiscordUser> {
         await this.checkTokenRefresh();
 
-        if (isThisEndpointRateLimited("/users/@me+" + (this.discordToken.discordUserId ?? crypto.randomUUID()))) {
+        if (isThisEndpointRateLimited("/users/@me+" + (this.discordToken.uid ?? crypto.randomUUID()))) {
             // If the endpoint is rate limited, log a warning and return early
-            logger.warn({ userId: this.discordToken.discordUserId }, `Cannot fetch Discord user info: endpoint is rate limited`);
+            logger.warn({ userId: this.discordToken.uid }, `Cannot fetch Discord user info: endpoint is rate limited`);
             throw new Error("Rate limit exceeded for /users/@me");
         }
 
@@ -183,7 +183,7 @@ export class DiscordApi {
             }
         });
 
-        trackLimit(response, `/users/@me+${this.discordToken.discordUserId ?? crypto.randomUUID}`); // scope endpoint to this user id
+        trackLimit(response, `/users/@me+${this.discordToken.uid ?? crypto.randomUUID}`); // scope endpoint to this user id
 
         if (!response.ok) {
             if (response.status === 429) {
@@ -248,9 +248,9 @@ export class DiscordApi {
     async getUserGuilds(): Promise<Array<PartialGuild>> {
         await this.checkTokenRefresh();
 
-        if (isThisEndpointRateLimited("/users/@me/guilds+" + (this.discordToken.discordUserId ?? crypto.randomUUID()))) {
+        if (isThisEndpointRateLimited("/users/@me/guilds+" + (this.discordToken.uid ?? crypto.randomUUID()))) {
             // If the endpoint is rate limited, log a warning and return early
-            logger.warn({ userId: this.discordToken.discordUserId }, `Cannot fetch Discord user guilds: endpoint is rate limited`);
+            logger.warn({ userId: this.discordToken.uid }, `Cannot fetch Discord user guilds: endpoint is rate limited`);
             throw new Error("Rate limit exceeded for /users/@me/guilds");
         }
 
@@ -281,13 +281,13 @@ export class DiscordApi {
 export class CacheableDiscordApi {
 
     private DiscordAPI: DiscordApi;
-    private discordToken: DiscordToken;
+    private discordToken: Omit<DiscordToken, 'refreshToken'>;
     wrappedGetDiscordUser: () => Promise<DiscordUser>;
     private wrappedGetGuildUserInfo;
     private wrappedGetUserGuilds;
     private cacheableGetGuildInfo;
 
-    constructor(token: DiscordToken) {
+    constructor(token: Omit<DiscordToken, 'refreshToken'>) {
         this.DiscordAPI = DiscordApi.fromSession(token);
         this.discordToken = token;
         const boundGetDiscordUser = this.DiscordAPI.getDiscordUser.bind(this.DiscordAPI);
@@ -295,14 +295,14 @@ export class CacheableDiscordApi {
         const boundGetUserGuilds = this.DiscordAPI.getUserGuilds.bind(this.DiscordAPI);
 
         this.wrappedGetDiscordUser = cacheable.wrap(boundGetDiscordUser, {
-            keyPrefix: "getDiscordUser" + this.discordToken.discordUserId,
+            keyPrefix: "getDiscordUser" + this.discordToken.uid,
             ttl: '10m'
         });
         this.wrappedGetGuildUserInfo = cacheable.wrap(boundGetGuildUserInfo, {
-            keyPrefix: "getGuildUserInfo" + this.discordToken.discordUserId,
+            keyPrefix: "getGuildUserInfo" + this.discordToken.uid,
         });
         this.wrappedGetUserGuilds = cacheable.wrap(boundGetUserGuilds, {
-            keyPrefix: "getUserGuilds" + this.discordToken.discordUserId,
+            keyPrefix: "getUserGuilds" + this.discordToken.uid,
         });
 
         this.cacheableGetGuildInfo = cacheable.wrap(this.uncachedGetGuildInfo.bind(this.DiscordAPI), {
@@ -311,14 +311,12 @@ export class CacheableDiscordApi {
     }
 
     static fromSession(session: {
-        discordUserId: string;
+        uid: string;
         accessToken: string;
-        refreshToken: string;
         accessTokenExpiresAt: Date;
     }) {
         return new CacheableDiscordApi({
-            discordUserId: session.discordUserId,
-            refreshToken: session.refreshToken,
+            uid: session.uid,
             accessToken: session.accessToken,
             accessTokenExpiresAt: session.accessTokenExpiresAt
         });
@@ -349,9 +347,9 @@ export class CacheableDiscordApi {
         url.searchParams.append('after', previousSnowflake);
         url.searchParams.append('limit', '1');
 
-        if (isThisEndpointRateLimited(url.toString + this.discordToken.discordUserId)) {
+        if (isThisEndpointRateLimited(url.toString + this.discordToken.uid)) {
             // If the endpoint is rate limited, log a warning and return early
-            logger.warn({ userId: this.discordToken.discordUserId }, `Cannot fetch Discord user guilds: endpoint is rate limited`);
+            logger.warn({ userId: this.discordToken.uid }, `Cannot fetch Discord user guilds: endpoint is rate limited`);
             throw new Error("Rate limit exceeded for " + url.toString);
         }
 

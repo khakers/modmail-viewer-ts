@@ -81,24 +81,32 @@ const handleAuthentication: Handle = async ({ event, resolve }) => {
 		if (!sessionToken) {
 			event.locals.session = null;
 			if (event.route.id !== null && !event.route.id.startsWith('/auth')) {
-				return redirect(302, '/auth/login');
+				return redirect(307, '/auth/login');
 			}
 			return resolve(event);
 		}
 
-		const { session } = await auth.validateSessionToken(sessionToken);
+		const { session, user: discordTokens } = await auth.validateSessionToken(sessionToken);
 
-		if (session) {
+
+		if (session && discordTokens) {
 			auth.setSessionTokenCookie(event, sessionToken, session.expiresAt);
 		} else {
 			auth.deleteSessionTokenCookie(event);
+			event.locals.session = null;
+			if (event.route.id !== null && event.route.id !== '/auth/login') {
+				return redirect(307, '/auth/login');
+			}
+			// redirect(307, '/auth/login');
 		}
 
+
 		event.locals.session = session;
+		event.locals.discordAccessTokens = discordTokens;
 
 		// add discord user information
 		if (session) {
-			const discordApi = CacheableDiscordApi.fromSession(session);
+			const discordApi = CacheableDiscordApi.fromSession(discordTokens);
 			const userdata = await discordApi.getDiscordUser();
 			logger.trace({ userdata }, 'Retrieved user data from Discord API');
 			event.locals.user = {
@@ -136,6 +144,7 @@ const handleInjectTenant: Handle = async ({ event, resolve }) => {
 			event.locals.logger.trace('Adding MongoDB client to request')
 			if (!event.params.tenant) {
 				// If no tenant is specified, return without adding a client
+				// TODO choose the first tenant if the user has access to any tenants
 				event.locals.logger.trace('No tenant specified in the request');
 				return resolve(event);
 			}
@@ -167,7 +176,11 @@ const handleTenancyAuthorization: Handle = async ({ event, resolve }) => {
 				logger.trace('No tenant found for request');
 				return resolve(event);
 			}
-			const discordAPi = CacheableDiscordApi.fromSession(event.locals.session);
+			if (!event.locals.discordAccessTokens) {
+				logger.error("No discord access tokens in request locals");
+				error(500, "internal error", event)
+			}
+			const discordAPi = CacheableDiscordApi.fromSession(event.locals.discordAccessTokens);
 			logger.trace({ tenantId: event.locals.Tenant.id, discordUserId: event.locals.session.discordUserId }, 'Checking permissions for tenant');
 
 			const tenantServerId = event.locals.Tenant.guildId;
