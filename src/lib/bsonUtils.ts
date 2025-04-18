@@ -1,5 +1,7 @@
 import { Long, ObjectId, Decimal128, Timestamp } from 'mongodb';
 
+
+// TODO proper typing
 /**
  * Recursively converts MongoDB BSON types in an object into standard JS types.
  * - Long is converted to number.
@@ -25,6 +27,10 @@ export function convertBSONtoJS(value: unknown): unknown {
 
     if (value instanceof Timestamp) {
         return value.toString();
+    }
+
+    if (value instanceof Date) {
+        return value.toISOString();
     }
 
     if (Array.isArray(value)) {

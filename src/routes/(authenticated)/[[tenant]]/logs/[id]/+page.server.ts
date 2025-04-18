@@ -8,8 +8,6 @@ import { MultitenancyDisabledError } from '$lib/server/tenancy/monoTenantMongodb
 import type { PageServerLoad } from './$types';
 import { isHttpError } from '@sveltejs/kit';
 
-export const prerender = false;
-
 
 export const load: PageServerLoad = async (event) => {
 
@@ -34,7 +32,7 @@ export const load: PageServerLoad = async (event) => {
                const modmailThread = await client.db()
                   .collection('logs')
                   .findOne<ModmailThread>({ _id: event.params.id });
-                  
+
                if (!modmailThread) {
                   logger.debug(event.params.id, 'Document not found');
                   error(404, 'Not Found', event);

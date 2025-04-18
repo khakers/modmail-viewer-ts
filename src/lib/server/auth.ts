@@ -48,7 +48,7 @@ export async function getDiscordRefreshToken(uid: string) {
 		.select({ token: table.user.refreshToken })
 		.from(table.user)
 		.where(eq(table.user.uid, uid))
-	
+
 	return result.token;
 }
 
@@ -61,16 +61,19 @@ export async function createSession(token: string, discordTokens: table.User) {
 	};
 
 	await db.transaction(async (tx) => {
-		await tx.insert(table.session).values(session);
 		// if there is already an exisitng user, update its values, otherwise insert
-		const [exists] = await tx.select().from(table.user).where(eq(table.user.uid, discordTokens.uid));
-		logger.trace({exists}, "identifying user")
-		if (exists) {
-			discord.revokeToken(exists.refreshToken).catch((...args) => logger.error({uid: discordTokens.uid, args},"failed to revoke token while setting"))
+		const [existingToken] = await tx.select().from(table.user).where(eq(table.user.uid, discordTokens.uid));
+		logger.trace({ exists: existingToken }, "identifying user")
+		if (existingToken) {
+			discord.revokeToken(existingToken.refreshToken)
+				.then(() => logger.trace({ uid: discordTokens.uid }, "revoked existing refresh token when creating new client session"))
+				.catch((...args) => logger.error({ uid: discordTokens.uid, args }, "failed to revoke token while setting"))
 			await tx.update(table.user).set(discordTokens).where(eq(table.user.uid, discordTokens.uid));
 		} else {
 			await tx.insert(table.user).values(discordTokens);
 		}
+
+		await tx.insert(table.session).values(session);
 	});
 
 	return session;

@@ -105,12 +105,12 @@
 		{/if}
 
 		<div class="flex gap-6">
-			<div class=" flex flex-row items-center p-1">
+			<div class="flex flex-row items-center p-1">
 				<h2>Creator:</h2>
 				{@render user(data.thread.creator)}
 			</div>
 			{#if data.thread.creator.id !== data.thread.recipient.id}
-				<div class="rounded-lg border bg-primary p-1">
+				<div class="flex flex-row items-center p-1">
 					<h2>Recipient:</h2>
 					{@render user(data.thread.recipient)}
 				</div>
@@ -148,7 +148,7 @@
 		{/each}
 	</ol>
 	{#if data.thread.close_message}
-		<div class="rounded-sm border border-s-8 border-s-red-600 bg-card px-4 py-1 gap-y-4">
+		<div class="gap-y-4 rounded-sm border border-s-8 border-s-red-600 bg-card px-4 py-1">
 			<h3 class=" text-xl">{m.born_dry_hare_burn()}</h3>
 			<div class="pt-2">
 				<Markdown content={data.thread.close_message} type="extended" />

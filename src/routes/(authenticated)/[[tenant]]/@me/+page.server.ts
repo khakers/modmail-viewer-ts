@@ -33,8 +33,10 @@ export const load = (async (event) => {
         // Handle the case where the MongoDB client is not available
         error(500, `MongoDB client not found for tenant '${tenant}'`, event);
     }
-
-    const discordApi = new CacheableDiscordApi({ discordUserId: event.locals.session.discordUserId, accessToken: event.locals.session.accessToken, refreshToken: event.locals.session.refreshToken, accessTokenExpiresAt: event.locals.session.accessTokenExpiresAt });
+    if (!event.locals.discordAccessTokens) {
+        error(500, 'Discord user information not found', event);
+    }
+    const discordApi = CacheableDiscordApi.fromSession(event.locals.discordAccessTokens);
 
     const discordRoles = await discordApi.getGuildUserInfo(tenant.guildId);
 
@@ -49,6 +51,6 @@ export const load = (async (event) => {
             botId: tenant.botId,
         }, 
         discordServer: await discordApi.getGuildUserInfo(tenant.guildId),
-        role: await tenant.getPermissionsLevel(discordRoles.roles || []),
+        role: await tenant.getPermissionsLevel(discordRoles.roles || [], event.locals.session.id),
     };
 }) satisfies PageServerLoad;
