@@ -1,5 +1,7 @@
 import { env } from '$env/dynamic/private';
 import pino from 'pino';
+import { AsyncLocalStorage } from 'node:async_hooks';
+
 let transport: pino.LoggerOptions['transport'];
 
 if (process.env.NODE_ENV === 'development') {
@@ -13,7 +15,7 @@ if (process.env.NODE_ENV === 'development') {
 
 const logLevel = (env.LOG_LEVEL !== undefined && env.LOG_LEVEL !== "") ? env.LOG_LEVEL : env.NODE_ENV === 'development' ? 'debug' : 'info';
 console.log(`Logger initialized with log level: ${logLevel}`);
-export const logger = pino({
+export const baseLogger = pino({
     level: logLevel,
     formatters: {
         log(object) {
@@ -34,4 +36,17 @@ export const logger = pino({
         paths: ['accessToken', 'refreshToken', 'secret', 'connection_uri', "mongoClient"],
     },
     transport
+});
+
+interface LoggerStore {
+    logger: pino.Logger;
+}
+
+export const context = new AsyncLocalStorage<LoggerStore>();
+
+export const logger =  new Proxy(baseLogger, {
+    get(target, property, receiver) {
+        target = context.getStore()?.logger ?? target;
+        return Reflect.get(target, property, receiver);
+    },
 });

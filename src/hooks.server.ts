@@ -1,7 +1,7 @@
 import * as auth from '$lib/server/auth.js';
 import { isRedirect, redirect, type Handle, type HandleServerError, type ServerInit } from '@sveltejs/kit';
 import { paraglideMiddleware } from '$lib/paraglide/server';
-import { logger } from '$lib/logger';
+import { context, baseLogger, logger } from '$lib/logger';
 import { sequence } from '@sveltejs/kit/hooks';
 import { Tenant } from '$lib/server/tenancy/tenant';
 import { CacheableDiscordApi } from '$lib/server/discord';
@@ -45,28 +45,31 @@ const handleRequestId: Handle = async ({ event, resolve }) => {
 };
 
 const handleLogging: Handle = async ({ event, resolve }) => {
-	const reqLogger = logger.child({ requestId: event.locals.requestId });
+	const reqLogger = baseLogger.child({ requestId: event.locals.requestId });
 
-	event.locals.logger = reqLogger;
+	// establish logger context for request
+	return await context.run({ logger: reqLogger }, async () => {
+		event.locals.logger = reqLogger;
 
-	const startTime = performance.now();
-	const uri = new URL(event.request.url);
+		const startTime = performance.now();
+		const uri = new URL(event.request.url);
 
-	reqLogger.info(event.request, 'Incoming request');
+		reqLogger.info(event.request, 'Incoming request');
 
-	const response = await resolve(event);
-	const endTime = performance.now();
+		const response = await resolve(event);
+		const endTime = performance.now();
 
-	reqLogger.info({
-		path: uri.pathname,
-		method: event.request.method,
-		status: response.status,
-		duration: endTime - startTime,
-		headers: response.headers,
-		body: response.body
+		reqLogger.info({
+			path: uri.pathname,
+			method: event.request.method,
+			status: response.status,
+			durationMillis: endTime - startTime,
+			headers: response.headers,
+			body: response.body
+		});
+
+		return response;
 	});
-
-	return response;
 };
 
 
