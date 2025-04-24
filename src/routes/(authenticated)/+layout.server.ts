@@ -76,14 +76,8 @@ export const load = (async (event) => {
 
     logger.debug({ userGulds: roleFetchStart - loadStart, roleFetch: roleFetchEnd - roleFetchStart, PermissionFetch: roleFetchEnd - permissionFetchEnd, permissionLevels: permissionFetchEnd - loadEnd }, `Tenants loaded in ${loadEnd - loadStart} ms (Guilds: ${roleFetchEnd - roleFetchStart} ms), `);
 
-    //  = guilds
-    //     .map(server => {
-    //         const e = filteredTenants.find(a => a.guildId === server.id)
-    //         return { tenant: e, guild: server };
-    //     })
-    //     .filter(a => a.tenant !== undefined);
-
     return {
+        currentTenant: event.locals.Tenant?.slug,
         user: event.locals.user || null,
         tenants: filteredTenants,
         tenantInfo,

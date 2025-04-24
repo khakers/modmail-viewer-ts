@@ -12,16 +12,18 @@
 	import { blur } from 'svelte/transition';
 
 	let {
-		tenants: tenants
+		tenants: tenants,
+		currentTenant: selectedTenant = $bindable()
 	}: {
 		tenants: TenantInfo[];
+		currentTenant?: string;
 	} = $props();
 	const sidebar = useSidebar();
-
+	$inspect(selectedTenant)
 	let activeTeam: TenantInfo | undefined = $derived(
 		tenants.find((tenant) => {
 			// Find the active tenant based on the current page route
-			return tenant.tenant.slug === page.params.tenant;
+			return tenant.tenant.slug === selectedTenant;
 		}) || tenants[0]
 	);
 </script>

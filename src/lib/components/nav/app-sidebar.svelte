@@ -52,16 +52,18 @@
 		collapsible = 'icon',
 		user,
 		tenants,
+		currentTenant,
 		...restProps
 	}: ComponentProps<typeof Sidebar.Root> & {
 		user: User;
 		tenants: TenantInfo[];
+		currentTenant?: string;
 	} = $props();
 </script>
 
 <Sidebar.Root bind:ref {collapsible} {...restProps}>
 	<Sidebar.Header>
-		<TenantSwitcher {tenants} />
+		<TenantSwitcher {tenants} {currentTenant} />
 	</Sidebar.Header>
 	<Sidebar.Content>
 		<NavMain items={data.navMain} />
