@@ -2,6 +2,7 @@ import { env } from "$env/dynamic/private";
 import { MongoClient } from "mongodb";
 import { building } from "$app/environment";
 import type { Tenant } from "./tenant";
+import type { TenantConfig } from '$lib/server/tenancy/tenantSchema';
 
 
 export class MultitenancyDisabledError extends Error {
@@ -23,7 +24,7 @@ if (!uri && !building) {
     throw new Error("MONGODB_URI is not set");
 }
 
-const tenant: Tenant = {
+const tenant: TenantConfig = {
     id: "default",
     connection_uri: uri,
     slug: "",
@@ -39,6 +40,6 @@ export function getMongodbClient(tenant: string | undefined): MongoClient {
     return MongodbClient;
 }
 
-export function getTenants(): Tenant[] {
+export function getTenants(): TenantConfig[] {
     return [tenant]
 }

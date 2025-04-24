@@ -1,9 +1,14 @@
 import * as auth from '$lib/server/auth.js';
-import { isRedirect, redirect, type Handle, type HandleServerError, type ServerInit } from '@sveltejs/kit';
+import {
+	type Handle,
+	type HandleServerError,
+	redirect,
+	type ServerInit
+} from '@sveltejs/kit';
 import { paraglideMiddleware } from '$lib/paraglide/server';
 import { context, baseLogger, logger } from '$lib/logger';
 import { sequence } from '@sveltejs/kit/hooks';
-import { Tenant } from '$lib/server/tenancy/tenant';
+import { getTenants, Tenant } from '$lib/server/tenancy/tenant';
 import { CacheableDiscordApi } from '$lib/server/discord';
 import { error } from '$lib/server/skUtils';
 import { getPermisionOrdinal } from '$lib/server/modmail/permissions';
@@ -12,15 +17,14 @@ import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
 import { env } from '$env/dynamic/private';
 import { building, dev, version } from '$app/environment';
 
-
 export const init: ServerInit = async () => {
-	console.log('init')
+	console.log('init');
 
-	if (dev === false && !building) {
+	if (!dev && !building) {
 		logger.info('Running migrations');
 		const db = drizzle(env.DATABASE_URL);
 		migrate(db, {
-			migrationsFolder: './drizzle',
+			migrationsFolder: './drizzle'
 		});
 	}
 	logger.info({ version }, 'Server initialized');
@@ -35,6 +39,7 @@ const handleParaglide: Handle = ({ event, resolve }) =>
 		});
 	});
 
+// Inject request uuid into request and set header
 const handleRequestId: Handle = async ({ event, resolve }) => {
 	event.locals.requestId = crypto.randomUUID();
 
@@ -44,6 +49,7 @@ const handleRequestId: Handle = async ({ event, resolve }) => {
 	return response;
 };
 
+// Creates a logger for each request, adds it to request locals, and initiates an async context for the logger that the rest of the request is done within
 const handleLogging: Handle = async ({ event, resolve }) => {
 	const reqLogger = baseLogger.child({ requestId: event.locals.requestId });
 
@@ -54,7 +60,19 @@ const handleLogging: Handle = async ({ event, resolve }) => {
 		const startTime = performance.now();
 		const uri = new URL(event.request.url);
 
-		reqLogger.info(event.request, 'Incoming request');
+		const url = new URL(event.request.url);
+		const requestLogObject = {
+			method: event.request.method,
+			url: event.request.url,
+			routeId: event.route.id,
+			path: url.pathname,
+			pathParams: event.params,
+			query: Object.fromEntries(url.searchParams),
+			headers: Object.fromEntries(event.request.headers),
+			agent: event.request.headers.get('user-agent'),
+		}
+
+		reqLogger.info(requestLogObject, 'Incoming request');
 
 		const response = await resolve(event);
 		const endTime = performance.now();
@@ -66,17 +84,16 @@ const handleLogging: Handle = async ({ event, resolve }) => {
 			durationMillis: endTime - startTime,
 			headers: response.headers,
 			body: response.body
-		});
+		}, 'request completed');
 
 		return response;
 	});
 };
 
-
-
 const handleAuthentication: Handle = async ({ event, resolve }) => {
+	const logger = event.locals.logger;
 	if (!building) {
-		if (event.url.pathname === "/favicon.ico") {
+		if (event.url.pathname === '/favicon.ico') {
 			return resolve(event);
 		}
 		const sessionToken = event.cookies.get(auth.sessionCookieName);
@@ -91,10 +108,10 @@ const handleAuthentication: Handle = async ({ event, resolve }) => {
 
 		const { session, user: discordTokens } = await auth.validateSessionToken(sessionToken);
 
-
 		if (session && discordTokens) {
 			auth.setSessionTokenCookie(event, sessionToken, session.expiresAt);
 		} else {
+			logger.trace("invalid session token in request")
 			auth.deleteSessionTokenCookie(event);
 			event.locals.session = null;
 			if (event.route.id !== null && event.route.id !== '/auth/login') {
@@ -103,55 +120,68 @@ const handleAuthentication: Handle = async ({ event, resolve }) => {
 			// redirect(307, '/auth/login');
 		}
 
-
 		event.locals.session = session;
 		event.locals.discordAccessTokens = discordTokens;
 
 		// add discord user information
 		if (session) {
 			const discordApi = CacheableDiscordApi.fromSession(discordTokens);
-			const userdata = await discordApi.getDiscordUser();
-			logger.trace({ userdata }, 'Retrieved user data from Discord API');
-			event.locals.user = {
-				discordUserId: userdata.id,
-				username: userdata.username,
-				discriminator: userdata.discriminator,
-				avatar: userdata.avatar ? `https://cdn.discordapp.com/avatars/${userdata.id}/${userdata.avatar}.png` : null
-			};
+			try {
+				const [userdata, guilds] = await Promise.all([
+					discordApi.getDiscordUser(),
+					discordApi.getUserGuilds()
+				]);
+				logger.trace({ userdata }, 'Retrieved user data from Discord API');
+				event.locals.user = {
+					discordUserId: userdata.id,
+					username: userdata.username,
+					discriminator: userdata.discriminator,
+					avatar: userdata.avatar
+						? `https://cdn.discordapp.com/avatars/${userdata.id}/${userdata.avatar}.png`
+						: null,
+					guilds: guilds
+				};
+			} catch (e) {
+				logger.error(
+					{ e },
+					'encountered an error trying to add discord user data to request local'
+				);
+				error(500, 'Discord API error', event);
+			}
 		}
-
 	}
 	return resolve(event);
 };
 
-// Redirects users to the login page if they attempt to access and authenticated route without a session
-const handleGeneralAuthorization: Handle = async ({ event, resolve }) => {
-	// Runs after the session middleware so the session is available
-	if (event.route.id?.startsWith('/(authenticated)')) {
-		if (!event.locals.session) {
-			// Redirect to login page
-			return redirect(303, '/auth/login');
-		}
-	}
-	return resolve(event);
-}
-
-
-
-// TODO refactor to supply tenant information instead
 // Adds a MongoDB client to the request if the route starts with /[[tenants]]
 const handleInjectTenant: Handle = async ({ event, resolve }) => {
+	// This hook cannot run anything during build time and will only cause issue if it does
 	if (!building) {
-		event.locals.logger.trace({ routeId: event.route.id }, 'Handling MongoDB client for request');
-		if (event.route.id?.startsWith('/[[tenant]]')) {
-			event.locals.logger.trace('Adding MongoDB client to request')
+		const logger = event.locals.logger;
+
+
+		if (event.route.id?.startsWith('/(authenticated)/[[tenant]]')) {
+			event.locals.logger.trace(
+				{ routeId: event.route.id, tenant: event.params.tenant },
+				'Injecting Tenant information'
+			);
 			if (!event.params.tenant) {
-				// If no tenant is specified, return without adding a client
 				// TODO choose the first tenant if the user has access to any tenants
-				event.locals.logger.trace('No tenant specified in the request');
-				return resolve(event);
+				// the discord guild information endpoint has a rate of 5 requests every few minutes so checking permisssions will likely get rate limited
+
+				const tenants = await getTenants(event.locals.user.guilds.map((guild) => guild.id));
+				if (tenants.length === 0 || tenants === undefined) {
+					logger.debug('The user does not have any discord guilds with tenants');
+					return error(404, 'Tenant not found');
+				}
+				event.locals.Tenant = tenants[0];
+				logger.debug(
+					{ tenantId: event.locals.Tenant.id },
+					"No tenant specified in the request, using first tenant that matched the user's guilds"
+				);
+			} else {
+				event.locals.Tenant = await Tenant.create(event.params.tenant);
 			}
-			event.locals.Tenant = await Tenant.create(event.params.tenant);
 			event.locals.logger = event.locals.logger.child({
 				tenantId: event.locals.Tenant.id,
 				tenantSlug: event.locals.Tenant.slug
@@ -159,12 +189,10 @@ const handleInjectTenant: Handle = async ({ event, resolve }) => {
 		}
 	}
 	return resolve(event);
-
-}
+};
 
 const handleTenancyAuthorization: Handle = async ({ event, resolve }) => {
 	if (!building) {
-
 		// Runs after the session and tenancy middleware to ensure that the user has access to the tenant they are trying to access
 		const logger = event.locals.logger.child({ module: 'handleTenancyAuthorization' });
 		if (!event.locals.session) {
@@ -180,15 +208,24 @@ const handleTenancyAuthorization: Handle = async ({ event, resolve }) => {
 				return resolve(event);
 			}
 			if (!event.locals.discordAccessTokens) {
-				logger.error("No discord access tokens in request locals");
-				error(500, "internal error", event)
+				logger.error('No discord access tokens in request locals');
+				error(500, 'internal error', event);
 			}
 			const discordAPi = CacheableDiscordApi.fromSession(event.locals.discordAccessTokens);
-			logger.trace({ tenantId: event.locals.Tenant.id, discordUserId: event.locals.session.discordUserId }, 'Checking permissions for tenant');
+			logger.trace(
+				{
+					tenantId: event.locals.Tenant.id,
+					discordUserId: event.locals.session.discordUserId
+				},
+				'Checking permissions for tenant'
+			);
 
 			const tenantServerId = event.locals.Tenant.guildId;
 			if (!tenantServerId) {
-				logger.error({ tenantId: event.locals.Tenant.id }, 'Tenant configuration missing guild id');
+				logger.error(
+					{ tenantId: event.locals.Tenant.id },
+					'Tenant configuration missing guild id'
+				);
 				error(500, 'Tenant configuration missing guild id', event);
 			}
 
@@ -197,37 +234,49 @@ const handleTenancyAuthorization: Handle = async ({ event, resolve }) => {
 
 			if (!userGuildInfo) {
 				// User is not part of the guild
-				logger.trace({ tenantId: event.locals.Tenant.id, discordUserId: event.locals.session.discordUserId }, 'User not found in tenant guild');
+				logger.trace(
+					{
+						tenantId: event.locals.Tenant.id,
+						discordUserId: event.locals.session.discordUserId
+					},
+					'User not found in tenant guild'
+				);
 				// Redirect to unauthorized or some other page
 				return error(403, 'You do not have access to this tenant', event);
 			}
-			const permissionLevel = await event.locals.Tenant.getPermissionsLevel(userGuildInfo.roles, event.locals.session.discordUserId);
+			const permissionLevel = await event.locals.Tenant.getPermissionsLevel(
+				userGuildInfo.roles,
+				event.locals.session.discordUserId
+			);
 
-			if (permissionLevel === undefined || getPermisionOrdinal(permissionLevel) < getPermisionOrdinal("SUPPORTER")) {
-				logger.trace({ discordUserId: event.locals.session.id, tenantId: event.locals.Tenant.id }, 'User is not authorized to access this tenant');
+			if (
+				permissionLevel === undefined ||
+				getPermisionOrdinal(permissionLevel) < getPermisionOrdinal('SUPPORTER')
+			) {
+				logger.trace(
+					{ discordUserId: event.locals.session.id, tenantId: event.locals.Tenant.id },
+					'User is not authorized to access this tenant'
+				);
 				return error(403, 'You do not have access to this tenant', event);
 			}
 		}
 	}
 	return resolve(event);
-}
+};
 
 export const handleError: HandleServerError = async ({ error, event, status, message }) => {
 	// Custom error handling
-	const reqLogger = (event.locals.logger || logger).child({ module: "handleError" });
+	const reqLogger = logger.child({ module: 'handleError' });
 
-	if (isRedirect(error)) {
-		return error;
-	}
 
 	// Log the error
-	reqLogger.error({ error }, 'Unhandled server error');
+	reqLogger.error({ error, event }, 'Unhandled server error');
 
 	return {
 		status,
 		message,
-		requestId: event.locals.requestId || undefined,
-	}
+		requestId: event.locals.requestId || undefined
+	};
 };
 
 export const handle: Handle = sequence(
@@ -238,5 +287,3 @@ export const handle: Handle = sequence(
 	handleInjectTenant,
 	handleTenancyAuthorization
 );
-
-// export const handle = sequence(originalHandle, handleAuth);

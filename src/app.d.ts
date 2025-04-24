@@ -1,5 +1,6 @@
 import type { Tenant } from '$lib/server/tenancy/tenant';
 import type pino from 'pino';
+import type { PartialGuild } from '$lib/server/discord';
 
 declare global {
 	namespace App {
@@ -12,10 +13,11 @@ declare global {
 			requestId: string;
 			discordAccessTokens: import('$lib/server/auth').SessionValidationResult['user'];
 			user: {
-				discordUserId: string; // The Discord user ID
-				username: string; // The Discord username
-				discriminator: string; // The Discord discriminator (e.g., "1234")
-				avatar: string | null; // The Discord avatar URL or null if no avatar is set
+				discordUserId: string;
+				username: string;
+				discriminator: string;
+				avatar: string | null;
+                guilds: PartialGuild[];
 			}
 			session: import('$lib/server/auth').SessionValidationResult['session'];
 			Tenant?: Tenant; // The tenant information for the current request, if applicable

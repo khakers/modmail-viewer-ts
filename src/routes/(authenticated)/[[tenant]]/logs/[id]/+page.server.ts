@@ -1,7 +1,6 @@
 import { building } from '$app/environment';
 import { convertBSONtoJS } from '$lib/bsonUtils';
 import type { ModmailThread } from '$lib/modmail';
-import { getMongodbClient } from '$lib/server/mongodb';
 import { hydrateS3AttachmentURLs } from '$lib/server/s3';
 import { error } from '$lib/server/skUtils';
 import { MultitenancyDisabledError } from '$lib/server/tenancy/monoTenantMongodb';
@@ -17,15 +16,15 @@ export const load: PageServerLoad = async (event) => {
 
       try {
          if (!building) {
-            if (!event.params.tenant) {
+            if (!event.locals.Tenant) {
                logger.error('Tenant parameter is missing');
-               error(400, 'Bad Request: Tenant parameter is missing', event);
+               error(404, 'No tenant found', event);
             }
-            const client = getMongodbClient(event.params.tenant);
+            const client = event.locals.Tenant.mongoClient;
 
             if (!client) {
                logger.error('MongoDB client not found');
-               error(404, `modmail server of id ${event.params.tenant} not found`, event);
+               error(500, `modmail server of id ${event.locals.Tenant.slug} not found`, event);
             }
 
             try {

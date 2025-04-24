@@ -1,4 +1,3 @@
-import { getMongodbClient } from '$lib/server/mongodb';
 import { isHttpError, isRedirect, redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { MultitenancyDisabledError } from '$lib/server/tenancy/monoTenantMongodb';
@@ -24,16 +23,16 @@ const paramsSchema = z.object({
 
 export const load: PageServerLoad = async (event) => {
 
-   const logger = event.locals.logger.child({ module: '' });
+   const logger = event.locals.logger;
 
    try {
-      const client = getMongodbClient(event.params.tenant);
+      const client = event.locals.Tenant?.mongoClient;
 
       const params = parseSearchParams(paramsSchema, event.url.searchParams)
 
       if (!client) {
-         logger.error('MongoDB client not found');
-         error(404, `modmail server of id '${event.params.tenant}' not found`, event);
+         logger.error('Request did not contain ');
+         error(404, `modmail server of id '${event.locals.Tenant?.slug}' not found`, event);
       }
       const filter: Filter<ModmailThread> = {}
 

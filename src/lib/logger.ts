@@ -33,7 +33,7 @@ export const baseLogger = pino({
         }
     },
     redact: {
-        paths: ['accessToken', 'refreshToken', 'secret', 'connection_uri', "mongoClient"],
+        paths: ['accessToken', 'refreshToken', 'secret', 'connection_uri', "mongoClient", "*.connection_uri", "query.state", "query.code", "headers.cookie"],
     },
     transport
 });
@@ -44,7 +44,7 @@ interface LoggerStore {
 
 export const context = new AsyncLocalStorage<LoggerStore>();
 
-export const logger =  new Proxy(baseLogger, {
+export const logger = new Proxy(baseLogger, {
     get(target, property, receiver) {
         target = context.getStore()?.logger ?? target;
         return Reflect.get(target, property, receiver);
