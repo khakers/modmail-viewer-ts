@@ -9,9 +9,6 @@
 	import ThemeSelector from './theme-selector.svelte';
 	import { resolveRoute } from '$app/paths';
 	import { page } from '$app/state';
-	import ChartPie from '@lucide/svelte/icons/chart-pie';
-	import Frame from '@lucide/svelte/icons/frame';
-	import Map from '@lucide/svelte/icons/map';
 	import Inbox from '@lucide/svelte/icons/inbox';
 	import ChartColumn from '@lucide/svelte/icons/chart-column';
 
@@ -25,24 +22,27 @@
 			{
 				title: m.merry_knotty_loris_cure(),
 				url: resolveRoute('/[[tenant]]/logs', { tenant: page.params.tenant }),
-				icon: Inbox
-			}
-		],
-		projects: [
-			{
-				name: 'Design Engineering',
-				url: '#',
-				icon: Frame
-			},
-			{
-				name: 'Sales & Marketing',
-				url: '#',
-				icon: ChartPie
-			},
-			{
-				name: 'Travel',
-				url: '#',
-				icon: Map
+				icon: Inbox,
+				items: [
+					{
+						title: m.tidy_such_rabbit_push(),
+						url:
+							resolveRoute('/[[tenant]]/logs', { tenant: page.params.tenant }) +
+							'?status=all'
+					},
+					{
+						title: m.fancy_inclusive_capybara_read(),
+						url:
+							resolveRoute('/[[tenant]]/logs', { tenant: page.params.tenant }) +
+							'?status=open'
+					},
+					{
+						title: m.next_smug_bumblebee_pick(),
+						url:
+							resolveRoute('/[[tenant]]/logs', { tenant: page.params.tenant }) +
+							'?status=closed'
+					}
+				]
 			}
 		]
 	});
@@ -65,7 +65,6 @@
 	</Sidebar.Header>
 	<Sidebar.Content>
 		<NavMain items={data.navMain} />
-		<!-- <NavProjects projects={data.projects} /> -->
 	</Sidebar.Content>
 	<Sidebar.Footer>
 		<ThemeSelector />

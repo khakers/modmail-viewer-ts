@@ -15,6 +15,13 @@
       "when": 1744925338190,
       "tag": "0001_flat_living_mummy",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1745357724801,
+      "tag": "0002_naive_leech",
+      "breakpoints": true
     }
   ]
 }

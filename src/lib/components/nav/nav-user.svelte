@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
 	import * as Avatar from '$lib/components/ui/avatar/index.js';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
@@ -8,6 +7,8 @@
 	import LogOut from '@lucide/svelte/icons/log-out';
 	import Github from '@lucide/svelte/icons/github';
 	import { enhance } from '$app/forms';
+	import Settings from '@lucide/svelte/icons/settings';
+	import { m } from '$lib/paraglide/messages';
 
 	let {
 		user
@@ -32,7 +33,7 @@
 						{...props}
 					>
 						<Avatar.Root class="h-8 w-8 rounded-lg">
-							<Avatar.Image src={user.avatar} alt={user.name} />
+							<Avatar.Image src={user.avatar} alt={user.name[0]} />
 							<Avatar.Fallback class="rounded-lg">{user.name}</Avatar.Fallback>
 						</Avatar.Root>
 						<div class="grid flex-1 text-left text-sm leading-tight">
@@ -53,21 +54,21 @@
 					<div class="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
 						<Avatar.Root class="h-8 w-8 rounded-lg">
 							<Avatar.Image src={user.avatar} alt={user.name} />
-							<Avatar.Fallback class="rounded-lg">CN</Avatar.Fallback>
+							<Avatar.Fallback class="rounded-lg">{user.name[0]}</Avatar.Fallback>
 						</Avatar.Root>
 						<div class="grid flex-1 text-left text-sm leading-tight">
 							<span class="truncate font-semibold">{user.name}</span>
-							<span class="truncate text-xs">{user.email}</span>
 						</div>
 					</div>
 				</DropdownMenu.Label>
-				<!-- <DropdownMenu.Separator />
+				<DropdownMenu.Separator />
 				<DropdownMenu.Group>
 					<DropdownMenu.Item>
-						<Sparkles />
-						Upgrade to Pro
+						<Settings />
+						{m.this_cuddly_kitten_wish()}
 					</DropdownMenu.Item>
-				</DropdownMenu.Group> -->
+				</DropdownMenu.Group>
+
 				<DropdownMenu.Separator />
 				<DropdownMenu.Group>
 					<DropdownMenu.Item>
@@ -81,51 +82,23 @@
 								class="relative flex cursor-pointer select-none items-center gap-2 outline-none transition-colors data-[disabled]:pointer-events-none data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0"
 							>
 								<Github />
-								Learn More
+								{m.calm_glad_tuna_explore()}
 							</span>
 						</a>
 					</DropdownMenu.Item>
 				</DropdownMenu.Group>
-				<!-- <DropdownMenu.Separator />
-				<DropdownMenu.Group>
-					<DropdownMenu.Item>
-						<BadgeCheck />
-						Account
-					</DropdownMenu.Item>
-					<DropdownMenu.Item>
-						<CreditCard />
-						Billing
-					</DropdownMenu.Item>
-					<DropdownMenu.Item>
-						<a href="../logs" class="flex flex-1">
-							<span
-								class="relative flex cursor-pointer select-none items-center gap-2 outline-none transition-colors data-[disabled]:pointer-events-none data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0"
-							>
-								<Bell />
-								Notifications
-							</span>
-						</a>
-					</DropdownMenu.Item>
-				</DropdownMenu.Group> -->
 				<DropdownMenu.Separator />
 				<DropdownMenu.Item>
 					<form method="POST" action="/?/logout" use:enhance class="flex flex-1">
-						<button
-							class="flex flex-1"
-						>
-						<span class="relative flex cursor-pointer select-none items-center gap-2 outline-none transition-colors data-[disabled]:pointer-events-none data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0">
-							<LogOut />
-							Log out
-					</span>
+						<button class="flex flex-1">
+							<span
+								class="relative flex cursor-pointer select-none items-center gap-2 outline-none transition-colors data-[disabled]:pointer-events-none data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0"
+							>
+								<LogOut />
+								{m.patient_suave_gibbon_shine()}
+							</span>
 						</button>
 					</form>
-					<!-- <a href="/auth/logout" data-sveltekit-preload-data={false} class="flex flex-1">
-						<span
-							class="relative flex cursor-pointer select-none items-center gap-2 outline-none transition-colors data-[disabled]:pointer-events-none data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0"
-						>
-
-						</span>
-					</a> -->
 				</DropdownMenu.Item>
 			</DropdownMenu.Content>
 		</DropdownMenu.Root>

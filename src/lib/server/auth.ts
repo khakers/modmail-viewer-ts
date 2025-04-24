@@ -7,15 +7,17 @@ import * as table from '$lib/server/db/schema';
 import { Discord } from 'arctic';
 import { env } from '$env/dynamic/private';
 import { logger } from '$lib/logger';
-import { addDays, isAfter, isPast, subDays } from 'date-fns';
+import { addDays, isPast, subDays } from 'date-fns';
+import { promise } from 'zod';
 
 // TODO verify these environment variables are set at start
-export const discord = new Discord(env.DISCORD_CLIENT_ID, env.DISCORD_CLIENT_SECRET, env.OAUTH_REDIRECT_URI);
+export const discord = new Discord(
+	env.DISCORD_CLIENT_ID,
+	env.DISCORD_CLIENT_SECRET,
+	env.OAUTH_REDIRECT_URI
+);
 
-
-class SessionHandler { }
-
-const DAY_IN_MS = 1000 * 60 * 60 * 24;
+class SessionHandler {}
 
 export const sessionCookieName = 'auth-session';
 
@@ -47,28 +49,45 @@ export async function getDiscordRefreshToken(uid: string) {
 	const [result] = await db
 		.select({ token: table.user.refreshToken })
 		.from(table.user)
-		.where(eq(table.user.uid, uid))
+		.where(eq(table.user.uid, uid));
 
 	return result.token;
 }
 
 export async function createSession(token: string, discordTokens: table.User) {
 	const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
-	const session: table.Session = {
+	const session = {
 		id: sessionId,
 		discordUserId: discordTokens.uid,
-		expiresAt: addDays(Date.now(), 30),
+		expiresAt: addDays(Date.now(), 30)
 	};
 
 	await db.transaction(async (tx) => {
-		// if there is already an exisitng user, update its values, otherwise insert
-		const [existingToken] = await tx.select().from(table.user).where(eq(table.user.uid, discordTokens.uid));
-		logger.trace({ exists: existingToken }, "identifying user")
+		// if there is already an existing user, update its values, otherwise insert
+		const [existingToken] = await tx
+			.select()
+			.from(table.user)
+			.where(eq(table.user.uid, discordTokens.uid));
+		logger.trace({ exists: existingToken }, 'identifying user');
 		if (existingToken) {
-			discord.revokeToken(existingToken.refreshToken)
-				.then(() => logger.trace({ uid: discordTokens.uid }, "revoked existing refresh token when creating new client session"))
-				.catch((...args) => logger.error({ uid: discordTokens.uid, args }, "failed to revoke token while setting"))
-			await tx.update(table.user).set(discordTokens).where(eq(table.user.uid, discordTokens.uid));
+			discord
+				.revokeToken(existingToken.refreshToken)
+				.then(() =>
+					logger.trace(
+						{ uid: discordTokens.uid },
+						'revoked existing refresh token when creating new client session'
+					)
+				)
+				.catch((...args) =>
+					logger.error(
+						{ uid: discordTokens.uid, args },
+						'failed to revoke token while setting'
+					)
+				);
+			await tx
+				.update(table.user)
+				.set(discordTokens)
+				.where(eq(table.user.uid, discordTokens.uid));
 		} else {
 			await tx.insert(table.user).values(discordTokens);
 		}
@@ -80,11 +99,19 @@ export async function createSession(token: string, discordTokens: table.User) {
 }
 
 export async function getDiscordUser(uid: string) {
-	const [result] = await db
-		.select()
-		.from(table.user)
-		.where(eq(table.user.uid, uid))
+	const [result] = await db.select().from(table.user).where(eq(table.user.uid, uid));
 	return result;
+}
+
+export async function getSessionsForUser(discordUid: string) {
+	return db
+		.select({
+			id: table.session.id,
+			expiresAt: table.session.expiresAt,
+			createdAt: table.session.createdAt
+		})
+		.from(table.session)
+		.where(eq(table.session.discordUserId, discordUid));
 }
 
 export async function validateSessionToken(token: string) {
@@ -118,9 +145,13 @@ export async function validateSessionToken(token: string) {
 	}
 
 	const [user] = await db
-		.select({ uid: table.user.uid, accessToken: table.user.accessToken, accessTokenExpiresAt: table.user.accessTokenExpiresAt })
+		.select({
+			uid: table.user.uid,
+			accessToken: table.user.accessToken,
+			accessTokenExpiresAt: table.user.accessTokenExpiresAt
+		})
 		.from(table.user)
-		.where(eq(table.user.uid, session.discordUserId))
+		.where(eq(table.user.uid, session.discordUserId));
 
 	return { session, user };
 }
@@ -129,9 +160,10 @@ export type SessionValidationResult = Awaited<ReturnType<typeof validateSessionT
 
 export async function invalidateSession(sessionId: string) {
 	// revoke refresh token before deleting the session
+	logger.info({ sessionId }, 'Invalidating session');
 	await db.transaction(async (tx) => {
 
-		const discordUidQuery = tx
+		const [discordUidQuery] = await tx
 			.select({ uid: table.session.discordUserId })
 			.from(table.session)
 			.where(eq(table.session.id, sessionId));
@@ -139,23 +171,44 @@ export async function invalidateSession(sessionId: string) {
 		const [userSessionCount] = await tx
 			.select({ value: count(table.session.id) })
 			.from(table.session)
-			.where(eq(table.session.discordUserId, discordUidQuery));
+			.where(eq(table.session.discordUserId, discordUidQuery.uid));
 
-		if (!(userSessionCount.value > 1)) {
-			const [result] = await tx.select({ refreshToken: table.user.refreshToken })
+		logger.trace({ userSessionCount, sessionId }, 'found discord UID for session');
+
+		if (userSessionCount.value <= 1) {
+			const [result] = await tx
+				.select({ refreshToken: table.user.refreshToken })
 				.from(table.user)
-				.where(eq(table.session.id, sessionId));
-			logger.trace({})
+				.where(eq(table.user.uid, discordUidQuery.uid));
+			logger.trace({}, "revoking refresh token");
 			try {
-				await discord.revokeToken(result?.refreshToken)
+				await discord.revokeToken(result?.refreshToken);
 			} catch (e) {
-				logger.error({ error: e }, 'Refrehs token revocation failed')
+				logger.error({ error: e }, 'Refresh token revocation failed');
 			}
 		}
 
 		await tx.delete(table.session).where(eq(table.session.id, sessionId));
-		logger.trace("succesfully invalidated session", { sessionId });
+		logger.trace({ sessionId },'succesfully invalidated session');
+	});
+}
 
+// Invalidate all sessions and revoke the discord refresh token
+export async function invalidateAllSessions(uid: string) {
+	await db.transaction(async (tx) => {
+		const [deleted, [result]] = await Promise.all([
+			tx.delete(table.session).where(eq(table.session.discordUserId, uid)),
+			tx
+				.select({ refreshToken: table.user.refreshToken })
+				.from(table.user)
+				.where(eq(table.user.uid, uid))
+		]);
+		logger.trace({ deleted }, "invalidated sessions");
+		try {
+			await discord.revokeToken(result?.refreshToken);
+		} catch (e) {
+			logger.error({ error: e }, 'Refresh token revocation failed');
+		}
 	});
 }
 

@@ -1,6 +1,6 @@
 import { createCipheriv, createDecipheriv, randomBytes } from 'crypto';
+import { sql } from 'drizzle-orm';
 import { sqliteTable, text, integer, customType } from 'drizzle-orm/sqlite-core';
-
 
 function encrypt(text: Buffer, key: Buffer): Buffer {
 	const iv = randomBytes(12);
@@ -22,29 +22,20 @@ function decrypt(cipherText: Buffer, key: Buffer): Buffer {
 	return text;
 }
 
-// if (!building && !process.env.ENCRYPTION_SECRET_KEY) {
-// 	throw new Error("ENCRYPTION_SECRET_KEY is not set");
-// }
-// 'building' will probably break drizzle because it can't import that
-
-const key = process.env.ENCRYPTION_SECRET_KEY ? Buffer.from(process.env.ENCRYPTION_SECRET_KEY!, "hex") : Buffer.alloc(32);
+const key = process.env.ENCRYPTION_SECRET_KEY
+	? Buffer.from(process.env.ENCRYPTION_SECRET_KEY!, 'hex')
+	: Buffer.alloc(32);
 
 const encryptedText = customType<{ data: string }>({
 	dataType() {
-		return "text";
+		return 'text';
 	},
 	fromDriver(value: unknown) {
-		return decrypt(
-			Buffer.from(value as string, "hex"),
-			key
-		).toString("utf8");
+		return decrypt(Buffer.from(value as string, 'hex'), key).toString('utf8');
 	},
 	toDriver(value: string) {
-		return encrypt(
-			Buffer.from(value, "utf8"),
-			key
-		).toString("hex");
-	},
+		return encrypt(Buffer.from(value, 'utf8'), key).toString('hex');
+	}
 });
 
 export const user = sqliteTable('user', {
@@ -52,18 +43,17 @@ export const user = sqliteTable('user', {
 	refreshToken: encryptedText('refresh_token').notNull(),
 	accessToken: encryptedText('access_token').notNull(),
 	accessTokenExpiresAt: integer('access_token_expires_at', { mode: 'timestamp' }).notNull()
-
 });
 
 export type User = typeof user.$inferSelect;
-
 
 export const session = sqliteTable('session', {
 	id: text('id').primaryKey(),
 	discordUserId: text('discord_user_id')
 		.notNull()
-		.references(()=> user.uid),
+		.references(() => user.uid),
 	expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull(),
+	createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`)
 });
 
 export type Session = typeof session.$inferSelect;
