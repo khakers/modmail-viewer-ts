@@ -1,39 +1,61 @@
 # modmail-viewer-ts
 
-A rewrite of modmail-viewer in Typescript and SvelteKit
+A full rewrite of modmail-viewer in Typescript and SvelteKit, built with full support for multi-tenancy.
 
-Requires a local sqlite database for storage of sessions.
+> [!IMPORTANT]
+> This project is in its very early stages and subject to breaking changes in minor releases as more work is done. It's name and location are also not final.
+
+Requires a local SQLite database for storage of sessions.
 Discord tokens are encrypted at rest using a provided secret key
 
-Tenants are currently specified via a json file.
+Tenants are currently specified via a JSON file.
 
-The slug is the field used in the url to access resources belonging to that tenant
+The slug is the field used in the URL to access resources belonging to that tenant.
+
+For example, in `logs.example.com/tenant/logs` the tenant slug is `tenant`.
 
 ```json
 [
-	{
-		"id": "1",
-		"slug": "tenant1",
-		"name": "Test Modmail Server",
-		"title": "Tenant1",
-		"description": "Tenant 1 description",
-		"connection_uri": "mongodb://localhost:27017/modmail_bot",
-		"guild_id": "896746579527886918",
-		"bot_id": "465564886976778762"
-	},
+  {
+    "id": "1",
+    "slug": "tenant1",
+    "name": "Test Modmail Server",
+    "title": "Tenant1",
+    "description": "Tenant 1 description",
+    "connection_uri": "mongodb://localhost:27017/modmail_bot",
+    "guild_id": "896746579527886918",
+    "bot_id": "465564886976778762"
+  },
 ]
 ```
 
-## environment variables
+## Multi-Tenancy
 
-DISCORD_CLIENT_ID
-DISCORD_CLIENT_SECRET
-OAUTH_REDIRECT_URI=http://localhost:5173/auth/login/discord/callback
+Support for Multi-Tenancy means you can have log viewing for as many modmail bots as you want with only one server.
+Authentication is shared by all users of the app, but a user can only view a modmail instance they have the correct permissions for.
+Tenants are determined by the tenant slug right before the '/log' portion of the url, and configured in the tenant JSON file.
 
-PUBLIC_S3_URL
-PUBLIC_S3_PRESIGNED use pre-signed s3 URLs for serving assets
-S3_ACCESS_KEY required for generating pre-signed s3 URL
-S3_SECRET_KEY required for generating pre-signed s3 URL
+## Environment variables
+
+`?` indicates that setting this is optional
+> [!WARNING]
+> `ENCRYPTION_SECRET_KEY` should be a long securely generated random string
+
+|Environment Variable|Default|Description|
+|
+|TENANT_JSON| | File path to JSON file containing valid tenant information
+|DATABASE_URL?| | SQLite database URL
+|DISCORD_CLIENT_ID| | Discord OAuth client ID.
+|DISCORD_CLIENT_SECRET| | Discord OAuth Client secret.
+|OAUTH_REDIRECT_URI| | You must set this to the intended reachable URL of your application, plus the callback path. ex: `https://logs.example.com/auth/login/discord/callback`
+|ENCRYPTION_SECRET_KEY| | Key used for encryption at rest of discord API tokens
+|PUBLIC_S3_URL?| | URL that S3 files can be accessed at.
+|PUBLIC_S3_PRESIGNED?|`false` | `true` use pre-signed s3 URLs for serving assets
+|S3_ACCESS_KEY?| | required for generating pre-signed s3 URL
+|S3_SECRET_KEY?| | required for generating pre-signed s3 URL
+
+> [!NOTE]
+> Additional environment variable configuration options can be found in the [sveltekit adapter-node docs](https://svelte.dev/docs/kit/adapter-node#Environment-variables-PORT-HOST-and-SOCKET_PATH)
 
 ## Developing
 
@@ -54,3 +76,13 @@ pnpm run build
 ```
 
 You can preview the production build with `pnpm run preview`.
+
+## Database
+
+Generate migrations with
+
+```bash
+pnpm db:generate
+```
+
+You can push schema changes to a local database with `db:push`
