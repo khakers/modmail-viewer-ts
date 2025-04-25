@@ -14,6 +14,9 @@ The slug is the field used in the URL to access resources belonging to that tena
 
 For example, in `logs.example.com/tenant/logs` the tenant slug is `tenant`.
 
+> [!NOTE]
+> Tenant schema is not final. 
+
 ```json
 [
   {
@@ -39,26 +42,26 @@ Tenants are determined by the tenant slug right before the '/log' portion of the
 
 `?` indicates that setting this is optional
 > [!WARNING]
-> `ENCRYPTION_SECRET_KEY` should be a long securely generated random string
+> `ENCRYPTION_SECRET_KEY` should be a long securely generated random string.
+> You can generate one with `openssl rand -hex 32`
 
-|Environment Variable|Default|Description|
-|
-|TENANT_JSON| | File path to JSON file containing valid tenant information
-|DATABASE_URL?| | SQLite database URL
-|DISCORD_CLIENT_ID| | Discord OAuth client ID.
-|DISCORD_CLIENT_SECRET| | Discord OAuth Client secret.
-|OAUTH_REDIRECT_URI| | You must set this to the intended reachable URL of your application, plus the callback path. ex: `https://logs.example.com/auth/login/discord/callback`
-|ENCRYPTION_SECRET_KEY| | Key used for encryption at rest of discord API tokens
-|PUBLIC_S3_URL?| | URL that S3 files can be accessed at.
-|PUBLIC_S3_PRESIGNED?|`false` | `true` use pre-signed s3 URLs for serving assets
-|S3_ACCESS_KEY?| | required for generating pre-signed s3 URL
-|S3_SECRET_KEY?| | required for generating pre-signed s3 URL
+| Environment Variable  | Default            | Description                                                                                                                                                      |
+|-----------------------|--------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| TENANT_JSON           |                    | File path to JSON file containing valid tenant information                                                                                                       |
+| DATABASE_URL?         | /var/data/local.db | SQLite database URL                                                                                                                                              |
+| DISCORD_CLIENT_ID     |                    | Discord OAuth client ID.                                                                                                                                         |
+| DISCORD_CLIENT_SECRET |                    | Discord OAuth Client secret.                                                                                                                                     |
+| OAUTH_REDIRECT_URI    |                    | You must set this to the intended reachable URL of your application, plus the callback path. For example: `https://logs.example.com/auth/login/discord/callback` |
+| ENCRYPTION_SECRET_KEY |                    | Key used for encryption at rest of discord API tokens                                                                                                            |
+| PUBLIC_S3_URL?        |                    | URL that S3 files can be accessed at.                                                                                                                            |
+| PUBLIC_S3_PRESIGNED?  | `false`            | `true` use pre-signed s3 URLs for serving assets                                                                                                                 |
+| S3_ACCESS_KEY?        |                    | required for generating pre-signed s3 URL                                                                                                                        |
+| S3_SECRET_KEY?        |                    | required for generating pre-signed s3 URL                                                                                                                        |
 
 > [!NOTE]
-> Additional environment variable configuration options can be found in the [sveltekit adapter-node docs](https://svelte.dev/docs/kit/adapter-node#Environment-variables-PORT-HOST-and-SOCKET_PATH)
+> Additional environment variable configuration options can be found in the [SvelteKit adapter-node documentation.](https://svelte.dev/docs/kit/adapter-node#Environment-variables-PORT-HOST-and-SOCKET_PATH)
 
 ## Developing
-
 
 ```bash
 pnpm run dev
