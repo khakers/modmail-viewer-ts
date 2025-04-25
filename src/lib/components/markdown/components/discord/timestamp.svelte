@@ -13,46 +13,49 @@
 
 	const date = $derived(fromUnixTime(parseInt(node.timestamp)));
 
+	const locale = getLocale();
+
+
 	const formatter = $derived.by(() => {
 		switch (node.format) {
 			// short time
 			case 't':
-				return new Intl.DateTimeFormat(getLocale(), {
+				return new Intl.DateTimeFormat(locale, {
 					dateStyle: undefined,
 					timeStyle: 'short'
 				});
 			// 	long time
 			case 'T':
-				return new Intl.DateTimeFormat('en-US', {
+				return new Intl.DateTimeFormat(locale, {
 					dateStyle: undefined,
 					timeStyle: 'medium'
 				});
 			// 	short date
 			case 'd':
-				return new Intl.DateTimeFormat('en-US', {
+				return new Intl.DateTimeFormat(locale, {
 					dateStyle: 'short',
 					timeStyle: undefined
 				});
 			// 	long date
 			case 'D':
-				return new Intl.DateTimeFormat('en-US', {
+				return new Intl.DateTimeFormat(locale, {
 					dateStyle: 'long',
 					timeStyle: undefined
 				});
 			// long date short time
 			case 'f':
-				return new Intl.DateTimeFormat('en-US', {
+				return new Intl.DateTimeFormat(locale, {
 					dateStyle: 'long',
 					timeStyle: 'short'
 				});
 			// 	long date with day of week and short time
 			case 'F':
-				return new Intl.DateTimeFormat('en-US', {
+				return new Intl.DateTimeFormat(locale, {
 					dateStyle: 'long',
 					timeStyle: 'medium'
 				});
 			default:
-				return new Intl.DateTimeFormat('en-US', {
+				return new Intl.DateTimeFormat(locale, {
 					dateStyle: 'long',
 					timeStyle: 'short'
 				});
@@ -60,7 +63,7 @@
 	});
 </script>
 
-<time class="rounded-md bg-accent px-1" datetime="date}">
+<time class="rounded-md bg-accent px-1" datetime={date.toISOString()}>
 	{formatter.format(date)}
 </time>
 
