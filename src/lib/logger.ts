@@ -33,7 +33,7 @@ export const baseLogger = pino({
         }
     },
     redact: {
-        paths: ['accessToken', 'refreshToken', 'secret', 'connection_uri', "mongoClient", "*.connection_uri", "query.state", "query.code", "headers.cookie"],
+        paths: ['accessToken', 'refreshToken', 'secret', 'connection_uri', "mongoClient", "*.connection_uri", "req.query.state", "req.query.code", "req.headers.cookie"],
     },
     transport
 });
