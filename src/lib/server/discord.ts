@@ -188,9 +188,9 @@ export class DiscordApi {
         if (!response.ok) {
             if (response.status === 429) {
                 // Unauthorized, token might be invalid or expired
-                logger.warn({ endpoint: "/users/@me", response }, `hit rate limit`);
+                logger.warn({ endpoint: "/users/@me", res: response }, `hit rate limit`);
             }
-            logger.error({ endpoint: "/users/@me", response }, `Failed to fetch user info}: ${response.statusText}`);
+            logger.error({ endpoint: "/users/@me", res: response }, `Failed to fetch user info}: ${response.statusText}`);
             throw new Error(`Failed to user info: ${response.statusText}`);
         }
 
@@ -236,9 +236,9 @@ export class DiscordApi {
         if (!response.ok) {
             if (response.status === 429) {
                 // Unauthorized, token might be invalid or expired
-                logger.warn({ guildId, endpoint: `/users/@me/guilds/${guildId}/member`, response }, `hit rate limit on `);
+                logger.warn({ guildId, endpoint: `/users/@me/guilds/${guildId}/member`, res: response }, `hit rate limit on `);
             }
-            logger.error({ guildId, endpoint: `/users/@me/guilds/${guildId}/member`, response }, `Failed to fetch guild member info for guild ${guildId}: ${response.statusText}`);
+            logger.error({ guildId, endpoint: `/users/@me/guilds/${guildId}/member`, res: response }, `Failed to fetch guild member info for guild ${guildId}: ${response.statusText}`);
             throw new Error(`Failed to fetch guild member info: ${response.statusText}`);
         }
 
@@ -267,9 +267,9 @@ export class DiscordApi {
         if (!response.ok) {
             if (response.status === 429) {
                 // Unauthorized, token might be invalid or expired
-                logger.warn({ endpoint: `/users/@me/guilds`, response }, `hit endpoint rate limit`);
+                logger.warn({ endpoint: `/users/@me/guilds`, res: response }, `hit endpoint rate limit`);
             }
-            logger.error({ endpoint: `/users/@me/guilds`, response }, `Failed to fetch user guilds: ${response.statusText}`);
+            logger.error({ endpoint: `/users/@me/guilds`, res: response }, `Failed to fetch user guilds: ${response.statusText}`);
             throw new Error(`Failed to fetch guild member info: ${response.statusText}`);
         }
 
@@ -368,7 +368,7 @@ export class CacheableDiscordApi {
                 // Unauthorized, token might be invalid or expired
                 logger.warn({ endpoint: url.toString(), response }, `hit endpoint rate limit`);
             }
-            logger.error({ endpoint: url.toString(), response }, `Failed to fetch user guilds: ${response.statusText}`);
+            logger.error({ endpoint: url.toString(), res: response }, `Failed to fetch user guilds: ${response.statusText}`);
             throw new Error(`Failed to fetch guild member info: ${response.statusText}`);
         }
         const res = await response.json();

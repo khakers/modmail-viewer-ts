@@ -70,6 +70,22 @@ pnpm run dev
 pnpm run dev -- --open
 ```
 
+### Logging
+
+Documentation of Pino footguns
+
+To properly log errors, you must name the error object err. It isn't serialized otherwise
+```ts
+logger.error({err: e}, "Error message");
+// or
+logger.error({err}, "Error message");
+```
+
+Do not reverse the order of the arguments, as this does an entirely different type of operation and will fail to do what you actually want.
+```ts
+logger.error("Error message", {err: e}); // This will not work as expected or at all
+```
+
 ## Building
 
 To create a production version of your app:

@@ -37,7 +37,7 @@ export function getTenants(): TenantConfig[] {
 		const clients = tenantSource.getTenants();
 		return clients || []; // Return the tenants array or an empty array if undefined
 	} catch (error) {
-		logger.error({ error }, 'Failed to get tenants');
+		logger.error({ err: error }, 'Failed to get tenants');
 		return [];
 	}
 }

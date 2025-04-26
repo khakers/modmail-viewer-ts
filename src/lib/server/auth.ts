@@ -184,7 +184,7 @@ export async function invalidateSession(sessionId: string) {
 			try {
 				await discord.revokeToken(result?.refreshToken);
 			} catch (e) {
-				logger.error({ error: e }, 'Refresh token revocation failed');
+				logger.error({ err: e }, 'Refresh token revocation failed');
 			}
 		}
 
@@ -207,7 +207,7 @@ export async function invalidateAllSessions(uid: string) {
 		try {
 			await discord.revokeToken(result?.refreshToken);
 		} catch (e) {
-			logger.error({ error: e }, 'Refresh token revocation failed');
+			logger.error({ err: e }, 'Refresh token revocation failed');
 		}
 	});
 }

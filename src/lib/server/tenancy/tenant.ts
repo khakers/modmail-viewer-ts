@@ -12,12 +12,12 @@ import { encodeHexLowerCase } from "@oslojs/encoding";
 import { coalesceAsync } from "../coaleseAsync";
 
 
-export const multitenancyEnabled = env.TENANT_JSON !== undefined;
+export const MULTITENANCY_ENABLED = env.TENANT_JSON !== undefined;
 
 export async function getTenantInfo(slug: string): Promise<TenantInfo> {
     // return tenant info from the provider if multitenancy is enabled or defaults/env if not
 
-    if (!multitenancyEnabled) {
+    if (!MULTITENANCY_ENABLED) {
         // Fallback to default tenant info if multitenancy is not enabled
         return {
             id: "default",

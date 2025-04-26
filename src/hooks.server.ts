@@ -1,10 +1,5 @@
 import * as auth from '$lib/server/auth.js';
-import {
-	type Handle,
-	type HandleServerError,
-	redirect,
-	type ServerInit
-} from '@sveltejs/kit';
+import { type Handle, type HandleServerError, redirect, type ServerInit } from '@sveltejs/kit';
 import { paraglideMiddleware } from '$lib/paraglide/server';
 import { context, baseLogger, logger } from '$lib/logger';
 import { sequence } from '@sveltejs/kit/hooks';
@@ -62,29 +57,37 @@ const handleLogging: Handle = async ({ event, resolve }) => {
 
 		const url = new URL(event.request.url);
 		const requestLogObject = {
-			method: event.request.method,
-			url: event.request.url,
-			routeId: event.route.id,
-			path: url.pathname,
-			pathParams: event.params,
-			query: Object.fromEntries(url.searchParams),
-			headers: Object.fromEntries(event.request.headers),
-			agent: event.request.headers.get('user-agent'),
-		}
+			req: {
+				method: event.request.method,
+				url: event.request.url,
+				routeId: event.route.id,
+				path: url.pathname,
+				pathParams: event.params,
+				query: Object.fromEntries(url.searchParams),
+				headers: Object.fromEntries(event.request.headers),
+				agent: event.request.headers.get('user-agent'),
+				remoteAddress: event.getClientAddress(),
+			}
+		};
 
 		reqLogger.info(requestLogObject, 'Incoming request');
 
 		const response = await resolve(event);
 		const endTime = performance.now();
 
-		reqLogger.info({
-			path: uri.pathname,
-			method: event.request.method,
-			status: response.status,
-			durationMillis: endTime - startTime,
-			headers: response.headers,
-			body: response.body
-		}, 'request completed');
+		reqLogger.info(
+			{
+				res: {
+					path: uri.pathname,
+					method: event.request.method,
+					status: response.status,
+					durationMillis: endTime - startTime,
+					headers: response.headers,
+					body: response.body
+				}
+			},
+			'request completed'
+		);
 
 		return response;
 	});
@@ -111,7 +114,7 @@ const handleAuthentication: Handle = async ({ event, resolve }) => {
 		if (session && discordTokens) {
 			auth.setSessionTokenCookie(event, sessionToken, session.expiresAt);
 		} else {
-			logger.trace("invalid session token in request")
+			logger.trace('invalid session token in request');
 			auth.deleteSessionTokenCookie(event);
 			event.locals.session = null;
 			if (event.route.id !== null && event.route.id !== '/auth/login') {
@@ -143,7 +146,7 @@ const handleAuthentication: Handle = async ({ event, resolve }) => {
 				};
 			} catch (e) {
 				logger.error(
-					{ e },
+					{ err: e },
 					'encountered an error trying to add discord user data to request local'
 				);
 				error(500, 'Discord API error', event);
@@ -159,7 +162,6 @@ const handleInjectTenant: Handle = async ({ event, resolve }) => {
 	if (!building) {
 		const logger = event.locals.logger;
 
-
 		if (event.route.id?.startsWith('/(authenticated)/[[tenant]]')) {
 			event.locals.logger.trace(
 				{ routeId: event.route.id, tenant: event.params.tenant },
@@ -170,7 +172,7 @@ const handleInjectTenant: Handle = async ({ event, resolve }) => {
 				// the discord guild information endpoint has a rate of 5 requests every few minutes so checking permisssions will likely get rate limited
 
 				const tenants = await getTenants(event.locals.user.guilds.map((guild) => guild.id));
-				if (tenants.length === 0 || tenants === undefined) {
+				if (tenants.length === 0) {
 					logger.debug('The user does not have any discord guilds with tenants');
 					return error(404, 'Tenant not found');
 				}
@@ -268,9 +270,8 @@ export const handleError: HandleServerError = async ({ error, event, status, mes
 	// Custom error handling
 	const reqLogger = logger.child({ module: 'handleError' });
 
-
 	// Log the error
-	reqLogger.error({ error, event }, 'Unhandled server error');
+	reqLogger.error({ err: error }, 'Unhandled server error');
 
 	return {
 		status,

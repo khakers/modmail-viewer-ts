@@ -26,13 +26,13 @@ export const load = (async (event) => {
         if (e instanceof OAuth2RequestError) {
             // Invalid authorization code, credentials, or redirect URI
             const code = e.code;
-            logger.error({ error: e }, 'Failed to validate Discord authorization code');
+            logger.error({ err: e }, 'Failed to validate Discord authorization code');
             // ...
         }
         if (e instanceof ArcticFetchError) {
             // Failed to call `fetch()`
             const cause = e.cause;
-            logger.error({ error: e }, 'Failed to fetch Discord tokens');
+            logger.error({ err: e }, 'Failed to fetch Discord tokens');
             // ...
         }
 
@@ -67,7 +67,7 @@ export const load = (async (event) => {
             if (isRedirect(e) || isHttpError(e)) {
                 throw e;
             } else {
-                logger.error({ error: e }, 'session creation failed');
+                logger.error({ err: e }, 'session creation failed');
                 error(500, 'session creation failed', event);
             }
         }
@@ -76,7 +76,7 @@ export const load = (async (event) => {
         if (isRedirect(e) || isHttpError(e)) {
             throw e;
         }
-        logger.error({ error: e }, 'Failed to fetch Discord user data');
+        logger.error({ err: e }, 'Failed to fetch Discord user data');
         error(500, 'Failed to fetch Discord user data', event);
     }
     // const discordUser = await getDiscordUser(tokens.accessToken());

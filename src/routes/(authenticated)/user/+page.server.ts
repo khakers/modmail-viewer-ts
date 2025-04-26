@@ -42,14 +42,14 @@ export const actions = {
 			try {
 				await invalidateSession(sessionId);
 			} catch (e) {
-				logger.error({ error: e }, 'Failed to revoke session');
+				logger.error({ err: e }, 'Failed to revoke session');
 				fail(500, { sessionId, invalidated: false });
 			}
 		} catch (e) {
 			if (isActionFailure(e)) {
 				throw e;
 			}
-			logger.error({ error: e }, 'received invalid session ID in session revocation request');
+			logger.error({ err: e }, 'received invalid session ID in session revocation request');
 			fail(400, { sessionId: form.get('sessionId') });
 		}
 	}
