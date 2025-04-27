@@ -59,7 +59,7 @@ export const load: PageServerLoad = async (event) => {
 
          const pageCount = Math.ceil(threadCount / params.pageSize)
 
-         if (params.page > pageCount) {
+         if (params.page > pageCount && params.page !== 1) {
             redirect(307, urlWithSearchParams(event.url, [["page", '1']]))
          }
 
