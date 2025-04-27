@@ -7,7 +7,8 @@ import dotenv from 'dotenv';
 
 export default defineConfig({
 	build: {
-		target: "ES2024"
+		target: "ES2024",
+		sourcemap: true
 	},
 	optimizeDeps: { esbuildOptions: { target: "ES2024" } },
 	server: {
@@ -16,7 +17,8 @@ export default defineConfig({
 				'**/mockoon.json',
 				'**docker-compose.yml',
 				'*.db',
-				'**/bruno/**'
+				'**/bruno/**',
+				'*.md'
 			]
 		}
 	},
