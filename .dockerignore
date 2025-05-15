@@ -16,6 +16,7 @@ Allowlist
 !tsconfig.json
 !vite.config.ts
 !.env.production
+!fixSourcemaps.cjs
 
 !.git
 
