@@ -48,6 +48,9 @@ importers:
       '@eslint/js':
         specifier: ^9.25.1
         version: 9.25.1
+      '@internationalized/date':
+        specifier: ^3.8.1
+        version: 3.8.2
       '@lucide/svelte':
         specifier: ^0.522.0
         version: 0.522.0(svelte@5.34.7)
@@ -86,7 +89,7 @@ importers:
         version: 3.6.0
       bits-ui:
         specifier: ^2.8.8
-        version: 2.8.8(@internationalized/date@3.8.0)(svelte@5.34.7)
+        version: 2.8.8(@internationalized/date@3.8.2)(svelte@5.34.7)
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
@@ -751,8 +754,8 @@ packages:
     resolution: {integrity: sha512-tyXNe/5+1Vn/eDt3mVklVjZh5qxFwqdF9+hdB6wRUCexVRw6w/w854TIRFrHuaAwFq/0N/ij/yXzll9oScAB+Q==}
     engines: {node: '>=18.0.0'}
 
-  '@internationalized/date@3.8.0':
-    resolution: {integrity: sha512-J51AJ0fEL68hE4CwGPa6E0PO6JDaVLd8aln48xFCSy7CZkZc96dGEGmLs2OEEbBxcsVZtfrqkXJwI2/MSG8yKw==}
+  '@internationalized/date@3.8.2':
+    resolution: {integrity: sha512-/wENk7CbvLbkUvX1tu0mwq49CVkkWpkXubGel6birjRPyo6uQ4nQpnq5xZu823zRCwwn82zgHrvgF1vZyvmVgA==}
 
   '@isaacs/fs-minipass@4.0.1':
     resolution: {integrity: sha512-wgm9Ehl2jpeqP3zw/7mo3kRHFp5MEDhqAdwy1fTGkHAwnkGOVsgpvQhL8B5n1qlb01jV3n/bI0ZfZp5lWA1k4w==}
@@ -3901,7 +3904,7 @@ snapshots:
     transitivePeerDependencies:
       - babel-plugin-macros
 
-  '@internationalized/date@3.8.0':
+  '@internationalized/date@3.8.2':
     dependencies:
       '@swc/helpers': 0.5.17
 
@@ -4576,11 +4579,11 @@ snapshots:
     dependencies:
       file-uri-to-path: 1.0.0
 
-  bits-ui@2.8.8(@internationalized/date@3.8.0)(svelte@5.34.7):
+  bits-ui@2.8.8(@internationalized/date@3.8.2)(svelte@5.34.7):
     dependencies:
       '@floating-ui/core': 1.7.1
       '@floating-ui/dom': 1.7.1
-      '@internationalized/date': 3.8.0
+      '@internationalized/date': 3.8.2
       esm-env: 1.2.2
       runed: 0.28.0(svelte@5.34.7)
       svelte: 5.34.7

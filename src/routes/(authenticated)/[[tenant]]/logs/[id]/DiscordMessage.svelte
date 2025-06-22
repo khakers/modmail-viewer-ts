@@ -2,7 +2,7 @@
 	import * as Avatar from '$lib/components/ui/avatar';
 	import { Badge } from '$lib/components/ui/badge';
 	import type { Message } from '$lib/modmail';
-	import { intlFormat, isToday } from 'date-fns';
+	import { isToday } from 'date-fns';
 	import EyeOff from '@lucide/svelte/icons/eye-off';
 	import BotMessageSquare from '@lucide/svelte/icons/bot-message-square';
 	import VenetianMask from '@lucide/svelte/icons/venetian-mask';
@@ -10,8 +10,8 @@
 	import { getLocale } from '$lib/paraglide/runtime';
 	import Markdown from '$lib/components/markdown/markdown.svelte';
 	import MessageAttachments from './MessageAttachments.svelte';
-	import { ShieldUser } from '@lucide/svelte';
-
+	import { ShieldUserIcon } from '@lucide/svelte';
+	
 	const {
 		message,
 		showUserProfile
@@ -32,7 +32,7 @@
 	);
 </script>
 
-<div class="group/message flex flex-col items-start ps-16 pt-1 text-sm hover:bg-accent">
+<div class="group/message hover:bg-accent flex flex-col items-start ps-16 pt-1 text-sm">
 	<!-- Show if the previous message was sent more than 5 minutes ago -->
 	<!-- current message minus 5 minutes is after the previous message -->
 	<!-- User profile  -->
@@ -45,25 +45,27 @@
 				</Avatar.Root>
 			</div>
 			<span class="text-xl font-semibold">{message.author.name}</span>
-			<time datetime={message.timestamp.toISOString()}
-				>{messageDateFormatterLong.format(message.timestamp)}</time
-			>
+			<time datetime={message.timestamp.toISOString()}>
+				{messageDateFormatterLong.format(message.timestamp)}
+			</time>
 			<!-- message type badges -->
 			<div class="flex flex-row gap-x-1 align-baseline">
 				{#if message.author.mod}
 					<Badge variant="destructive">
-						<ShieldUser class="me-2 h-4 w-4" />{m.salty_game_jaguar_slurp()}
+						<ShieldUserIcon />{m.salty_game_jaguar_slurp()}
 					</Badge>
 				{/if}
 				{#if message.type === 'system'}
 					<Badge variant="secondary">
-						<BotMessageSquare class="me-2 h-4 w-4" />{m.basic_calm_tuna_flip()}
+						<BotMessageSquare />{m.basic_calm_tuna_flip()}
 					</Badge>
 				{:else if message.type === 'internal'}
-					<Badge variant="secondary"><EyeOff class="me-2 h-4 w-4" />{m.tidy_such_mole_dance()}</Badge>
+					<Badge variant="secondary">
+						<EyeOff />{m.tidy_such_mole_dance()}
+					</Badge>
 				{:else if message.type === 'anonymous'}
 					<Badge variant="secondary">
-						<VenetianMask class="me-2 h-4 w-4" />{m.broad_active_pony_savor()}
+						<VenetianMask />{m.broad_active_pony_savor()}
 					</Badge>
 				{/if}
 			</div>
