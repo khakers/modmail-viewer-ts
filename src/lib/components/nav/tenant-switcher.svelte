@@ -87,7 +87,7 @@
 				{/snippet}
 			</DropdownMenu.Trigger>
 			<DropdownMenu.Content
-				class="w-[var(--bits-dropdown-menu-anchor-width)] min-w-56 rounded-lg"
+				class="w-(--bits-dropdown-menu-anchor-width) min-w-56 rounded-lg"
 				align="start"
 				side={sidebar.isMobile ? 'bottom' : 'right'}
 				sideOffset={4}

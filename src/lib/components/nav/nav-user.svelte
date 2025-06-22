@@ -45,7 +45,7 @@
 				{/snippet}
 			</DropdownMenu.Trigger>
 			<DropdownMenu.Content
-				class="w-[var(--bits-dropdown-menu-anchor-width)] min-w-56 rounded-lg"
+				class="w-(--bits-dropdown-menu-anchor-width) min-w-56 rounded-lg"
 				side={sidebar.isMobile ? 'bottom' : 'right'}
 				align="end"
 				sideOffset={4}
@@ -79,7 +79,7 @@
 							class="flex flex-1"
 						>
 							<span
-								class="relative flex cursor-pointer select-none items-center gap-2 outline-none transition-colors data-[disabled]:pointer-events-none data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0"
+								class="relative flex cursor-pointer select-none items-center gap-2 outline-hidden transition-colors data-disabled:pointer-events-none data-highlighted:bg-accent data-highlighted:text-accent-foreground data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0"
 							>
 								<Github />
 								{m.calm_glad_tuna_explore()}
@@ -92,7 +92,7 @@
 					<form method="POST" action="/?/logout" use:enhance class="flex flex-1">
 						<button class="flex flex-1">
 							<span
-								class="relative flex cursor-pointer select-none items-center gap-2 outline-none transition-colors data-[disabled]:pointer-events-none data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0"
+								class="relative flex cursor-pointer select-none items-center gap-2 outline-hidden transition-colors data-disabled:pointer-events-none data-highlighted:bg-accent data-highlighted:text-accent-foreground data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0"
 							>
 								<LogOut />
 								{m.patient_suave_gibbon_shine()}

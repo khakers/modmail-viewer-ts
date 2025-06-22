@@ -22,13 +22,13 @@
 						class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
 						{...props}
 					>
-						<div class="flex size-8 flex-shrink-0 items-center justify-center">
+						<div class="flex size-8 shrink-0 items-center justify-center">
 							{#if $userPrefersMode === 'light'}
-								<Sun class="!size-6" />
+								<Sun class="size-6!" />
 							{:else if $userPrefersMode === 'dark'}
-								<Moon class="!size-6" />
+								<Moon class="size-6!" />
 							{:else}
-								<SunMoon class="!size-6" />
+								<SunMoon class="size-6!" />
 							{/if}
 						</div>
 						<div class="grid flex-1 text-left text-sm leading-tight">
@@ -41,7 +41,7 @@
 				{/snippet}
 			</DropdownMenu.Trigger>
 			<DropdownMenu.Content
-				class="w-[var(--bits-dropdown-menu-anchor-width)] min-w-56 rounded-lg"
+				class="w-(--bits-dropdown-menu-anchor-width) min-w-56 rounded-lg"
 				side={sidebar.isMobile ? 'bottom' : 'right'}
 				align="end"
 				sideOffset={4}
