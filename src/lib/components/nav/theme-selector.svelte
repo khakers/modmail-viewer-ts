@@ -10,6 +10,8 @@
 	import { m } from '$lib/paraglide/messages';
 
 	const sidebar = useSidebar();
+
+	const mode = $derived(userPrefersMode.current)
 </script>
 
 <Sidebar.Menu>
@@ -23,9 +25,9 @@
 						{...props}
 					>
 						<div class="flex size-8 shrink-0 items-center justify-center">
-							{#if $userPrefersMode === 'light'}
+							{#if mode === 'light'}
 								<Sun class="size-6!" />
-							{:else if $userPrefersMode === 'dark'}
+							{:else if mode === 'dark'}
 								<Moon class="size-6!" />
 							{:else}
 								<SunMoon class="size-6!" />
@@ -33,7 +35,7 @@
 						</div>
 						<div class="grid flex-1 text-left text-sm leading-tight">
 							<span class="truncate">
-								{m.that_tense_anteater_peek({ theme: $userPrefersMode })}
+								{m.that_tense_anteater_peek({ theme: mode })}
 								</span>
 						</div>
 						<ChevronsUpDown class="ml-auto size-4" />
