@@ -34,7 +34,7 @@
 		"@testing-library/jest-dom": "^6.6.3",
 		"@testing-library/svelte": "^5.2.7",
 		"@types/better-sqlite3": "^7.6.13",
-		"@types/node": "^22.14.1",
+		"@types/node": "^24.0.8",
 		"arctic": "^3.6.0",
 		"bits-ui": "^2.8.8",
 		"clsx": "^2.1.1",
