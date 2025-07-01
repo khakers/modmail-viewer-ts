@@ -36,6 +36,7 @@
 		"@types/better-sqlite3": "^7.6.13",
 		"@types/node": "^24.0.8",
 		"arctic": "^3.6.0",
+		"better-sqlite3": "^12.2.0",
 		"bits-ui": "^2.8.8",
 		"clsx": "^2.1.1",
 		"date-fns": "^4.1.0",
@@ -71,7 +72,6 @@
 	"dependencies": {
 		"@inlang/paraglide-js": "^2.0.12",
 		"@keyv/memcache": "^2.0.1",
-		"better-sqlite3": "^11.9.1",
 		"bson": "^6.10.3",
 		"cacheable": "^1.8.10",
 		"dotenv": "^16.5.0",
