@@ -4,6 +4,8 @@ import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
 import dotenv from 'dotenv';
 import tailwindcss from '@tailwindcss/vite'
+import devtoolsJson from 'vite-plugin-devtools-json';
+
 
 
 export default defineConfig({
@@ -32,6 +34,7 @@ export default defineConfig({
 	})(),
 	plugins: [
 		tailwindcss(),
+		devtoolsJson(),
 		sveltekit(),
 		paraglideVitePlugin({
 			project: './project.inlang',
