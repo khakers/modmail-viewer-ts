@@ -22,26 +22,24 @@
 	const previousPageUrl = $derived(urlForPage(previousPage, page.url));
 </script>
 
-<div class="flex justify-center">
-	<div class="flex items-center rounded-md bg-primary-foreground">
-		<Button
-			variant="link"
-			disabled={index === 1}
-			href={previousPageUrl}
-		>
+<div class="flex justify-center paginator">
+	<div class="bg-primary-foreground flex items-center rounded-md">
+		<Button variant="link" disabled={index === 1} href={previousPageUrl}>
 			<ChevronLeft />
 			{m.ideal_cuddly_manatee_revive()}
 		</Button>
-		<span class="rounded-md border border-muted-foreground px-1">
+		<span class="border-muted-foreground rounded-md border px-1">
 			{index} / {pageCount}
 		</span>
-		<Button
-			variant="link"
-			disabled={index === pageCount}
-			href={nextPageUrl}
-		>
+		<Button variant="link" disabled={index === pageCount} href={nextPageUrl}>
 			{m.gray_topical_frog_comfort()}
 			<ChevronRight />
 		</Button>
 	</div>
 </div>
+
+<style>
+	.paginator {
+		view-transition-name: paginator;
+	}
+</style>

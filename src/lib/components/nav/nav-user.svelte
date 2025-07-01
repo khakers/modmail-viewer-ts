@@ -64,8 +64,19 @@
 				<DropdownMenu.Separator />
 				<DropdownMenu.Group>
 					<DropdownMenu.Item>
+
+						<a
+						href="/user"
+						referrerpolicy="strict-origin"
+						target="_blank"
+						class="flex flex-1"
+					>
+						<span
+							class="relative flex cursor-pointer select-none items-center gap-2 outline-hidden transition-colors data-disabled:pointer-events-none data-highlighted:bg-accent data-highlighted:text-accent-foreground data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0"
+						>
 						<Settings />
-						{m.this_cuddly_kitten_wish()}
+						{m.this_cuddly_kitten_wish()}						</span>
+					</a>
 					</DropdownMenu.Item>
 				</DropdownMenu.Group>
 

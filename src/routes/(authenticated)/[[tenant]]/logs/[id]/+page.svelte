@@ -11,6 +11,7 @@
 	import { getLocale } from '$lib/paraglide/runtime';
 	import { m } from '$lib/paraglide/messages';
 	import { clearSearchParams } from '$lib/searchParamUtils';
+	import { CircleCheck, CircleDot } from '@lucide/svelte';
 
 	// thread isn't undefined in the load function but sveltekit is convinced it is now for some reason
 	const { data }: { data: PageData } = $props();
@@ -58,7 +59,7 @@
 					<span class="inline-flex">
 						<span class="text-xl font-semibold">{user.name}</span>
 						{#if user.discriminator !== '0'}
-							<span class="text-xl font-semibold text-muted-foreground">
+							<span class="text-muted-foreground text-xl font-semibold">
 								#{user.discriminator}
 							</span>
 						{/if}
@@ -77,14 +78,24 @@
 
 {#if data.thread}
 	<div>
-		<h1 class="font-mono text-2xl uppercase">{data.thread._id}</h1>
+		<h1
+			class="w-fit font-mono text-2xl uppercase"
+			style={`view-transition-name: log-id-title-${data.thread._id};`}
+		>
+			{data.thread._id}
+		</h1>
 		{#if data.thread.title}
 			<h2 class="text-xl">{data.thread.title}</h2>
 		{/if}
 		{#if data.thread.open}
-			<Badge>Open</Badge>
+			<Badge style={`view-transition-name: log-${data.thread._id}-badge;`}>
+				<CircleDot class="me-1 h-4" />{m.deft_wild_platypus_peel()}
+			</Badge>
 		{:else}
-			<Badge variant="destructive">{m.zippy_pretty_martin_radiate()}</Badge>
+			<Badge variant="destructive" style={`view-transition-name: log-${data.thread._id}-badge;`}>
+				<CircleCheck class="me-1 h-4" />
+				{m.zippy_pretty_martin_radiate()}
+			</Badge>
 		{/if}
 		{#if data.thread.nfsw}
 			<Badge variant="destructive" class="ml-2">{m.sea_mellow_marmot_inspire()}</Badge>
@@ -105,12 +116,12 @@
 		{/if}
 
 		<div class="flex gap-6">
-			<div class="flex flex-row items-center p-1">
+			<div class="flex flex-row items-center p-1 ps-0">
 				<h2>Creator:</h2>
 				{@render user(data.thread.creator)}
 			</div>
 			{#if data.thread.creator.id !== data.thread.recipient.id}
-				<div class="flex flex-row items-center p-1">
+				<div class="flex flex-row items-center p-1 ps-0">
 					<h2>Recipient:</h2>
 					{@render user(data.thread.recipient)}
 				</div>
@@ -123,8 +134,10 @@
 			<!-- If the current message and previous message were sent on different days -->
 			<!-- Date divider -->
 			{#if i !== 0 && !isSameDay(messages[i - 1].timestamp, message.timestamp)}
-				<div class="mb-3 mt-6 flex h-0 w-full items-center justify-center border-t-2 text-xs">
-					<span class="-m-1 rounded-sm bg-background px-2">
+				<div
+					class="mt-6 mb-3 flex h-0 w-full items-center justify-center border-t-2 text-xs"
+				>
+					<span class="bg-background -m-1 rounded-sm px-2">
 						{intlFormat(
 							new Date(message.timestamp),
 							{
@@ -147,13 +160,13 @@
 			</li>
 		{/each}
 	</ol>
-	{#if data.thread.close_message}
-		<div class="gap-y-4 rounded-sm border border-s-8 border-s-red-600 bg-card px-4 py-1">
+	{#if data.thread.close_message !== undefined && data.thread.close_message !== null}
+		<div class="bg-card gap-y-4 rounded-sm border border-s-8 border-s-red-600 px-4 py-1">
 			<h3 class=" text-xl">{m.born_dry_hare_burn()}</h3>
 			<div class="pt-2">
-				<Markdown content={data.thread.close_message} type="extended" />
+				<Markdown content={data.thread.close_message ?? ""} type="extended" />
 			</div>
-			<div class="mt-2 flex items-center gap-4 text-muted-foreground">
+			<div class="text-muted-foreground mt-2 flex items-center gap-4">
 				{#if data.thread.closer}
 					<span class="inline-flex items-center gap-2 font-semibold">
 						<UserAvatar user={data.thread.closer as User} class="size-7" />
