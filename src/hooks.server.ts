@@ -103,7 +103,7 @@ const handleAuthentication: Handle = async ({ event, resolve }) => {
 
 		if (!sessionToken) {
 			event.locals.session = null;
-			if (event.route.id !== null && !event.route.id.startsWith('/auth')) {
+			if (event.route.id !== null && !event.route.id.startsWith('/auth') && !event.route.id.startsWith('/share')) {
 				return redirect(307, '/auth/login');
 			}
 			return resolve(event);

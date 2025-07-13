@@ -60,6 +60,22 @@ export function getMongodbClient(tenantSlug: string | undefined): MongoClient | 
     return undefined
 }
 
+export function getMongodbClientFromId(id: string): MongoClient | undefined {
+    if (!id) {
+        throw new Error('tenant id cannot be undefined')
+    }
+
+    const entries = TenantMongodbInstances.values();
+
+    for (const val of entries) {
+        if (val.tenant.id === id) {
+            return val.MongodbClient;
+        }
+    }
+
+    return undefined
+}
+
 export function getTenantData(tenantSlug: string): TenantConfig & { mongoClient: MongoClient } | undefined {
     // logger.debug({ tenant }, "getTenantData");
     if (tenantSlug) {

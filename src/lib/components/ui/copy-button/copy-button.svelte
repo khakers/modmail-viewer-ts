@@ -1,24 +1,19 @@
 <!--
-	Installed from github/ieedan/shadcn-svelte-extras
+	Installed from @ieedan/shadcn-svelte-extras
 -->
 
 <script lang="ts">
-	import { Button, type ButtonProps } from '$lib/components/ui/button';
+	import { Button } from '$lib/components/ui/button';
 	import { UseClipboard } from '$lib/hooks/use-clipboard.svelte';
 	import { cn } from '$lib/utils';
-	import { Check, Copy, X } from '@lucide/svelte';
-	import type { Snippet } from 'svelte';
+	import CheckIcon from '@lucide/svelte/icons/check';
+	import CopyIcon from '@lucide/svelte/icons/copy';
+	import XIcon from '@lucide/svelte/icons/x';
 	import { scale } from 'svelte/transition';
-
-	// omit href so you can't create a link
-	interface Props extends Omit<ButtonProps, 'href'> {
-		text: string;
-		icon?: Snippet<[]>;
-		animationDuration?: number;
-		onCopy?: (status: UseClipboard['status']) => void;
-	}
+	import type { CopyButtonProps } from './types';
 
 	let {
+		ref = $bindable(null),
 		text,
 		icon,
 		animationDuration = 500,
@@ -26,20 +21,28 @@
 		size = 'icon',
 		onCopy,
 		class: className,
-		...restProps
-	}: Props = $props();
+		tabindex = -1,
+		children,
+		...rest
+	}: CopyButtonProps = $props();
+
+	// this way if the user passes text then the button will be the default size
+	if (size === 'icon' && children) {
+		size = 'default';
+	}
 
 	const clipboard = new UseClipboard();
 </script>
 
 <Button
-	{...restProps}
+	{...rest}
+	bind:ref
 	{variant}
 	{size}
-	class={cn(className)}
+	{tabindex}
+	class={cn('flex items-center gap-2', className)}
 	type="button"
 	name="copy"
-	tabindex={-1}
 	onclick={async () => {
 		const status = await clipboard.copy(text);
 
@@ -48,12 +51,12 @@
 >
 	{#if clipboard.status === 'success'}
 		<div in:scale={{ duration: animationDuration, start: 0.85 }}>
-			<Check />
+			<CheckIcon tabindex={-1} />
 			<span class="sr-only">Copied</span>
 		</div>
 	{:else if clipboard.status === 'failure'}
 		<div in:scale={{ duration: animationDuration, start: 0.85 }}>
-			<X />
+			<XIcon tabindex={-1} />
 			<span class="sr-only">Failed to copy</span>
 		</div>
 	{:else}
@@ -61,9 +64,10 @@
 			{#if icon}
 				{@render icon()}
 			{:else}
-				<Copy />
+				<CopyIcon tabindex={-1} />
 			{/if}
 			<span class="sr-only">Copy</span>
 		</div>
 	{/if}
+	{@render children?.()}
 </Button>

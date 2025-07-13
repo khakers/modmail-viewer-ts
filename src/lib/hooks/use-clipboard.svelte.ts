@@ -1,5 +1,5 @@
 /*
-	Installed from github/ieedan/shadcn-svelte-extras
+	Installed from @ieedan/shadcn-svelte-extras
 */
 
 type Options = {
@@ -74,7 +74,7 @@ export class UseClipboard {
 		return this.#copiedStatus;
 	}
 
-	/** True when the user has just copied to the clipboard. */
+	/** true when the user has just copied to the clipboard. */
 	get copied() {
 		return this.#copiedStatus === 'success';
 	}

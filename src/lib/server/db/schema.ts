@@ -1,6 +1,6 @@
 import { createCipheriv, createDecipheriv, randomBytes } from 'crypto';
 import { sql } from 'drizzle-orm';
-import { sqliteTable, text, integer, customType } from 'drizzle-orm/sqlite-core';
+import { customType, index, integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 
 function encrypt(text: Buffer, key: Buffer): Buffer {
 	const iv = randomBytes(12);
@@ -57,3 +57,22 @@ export const session = sqliteTable('session', {
 });
 
 export type Session = typeof session.$inferSelect;
+
+export const sharedThreads = sqliteTable('shared_threads', {
+	id: text('uuid').primaryKey().$defaultFn(() => crypto.randomUUID()),
+	threadId: text('thread_id'),
+	tenantId: text('tenant_id').notNull(),
+	creatorDiscordUserId: text('creator_discord_user_id')
+		.notNull(),
+	expiresAt: integer('expires_at', { mode: 'timestamp' }),
+	createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
+	requireAuthentication: integer({ mode: 'boolean' }).notNull(),
+	showInternalMessages: integer({ mode: 'boolean' }).notNull(),
+	showAnonymouseSenderName: integer({ mode: 'boolean' }).notNull(),
+	showSystemMessages: integer({ mode: 'boolean' }).notNull(),
+	enabled: integer({ mode: 'boolean' }).notNull().default(true),
+}, (table) => [
+	index("thread_id_idx").on(table.threadId)
+])
+
+export type SharedThreads = typeof sharedThreads.$inferSelect;

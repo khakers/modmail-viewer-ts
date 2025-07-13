@@ -13,12 +13,10 @@
 	import { intlFormat, isAfter, isSameDay, subMinutes } from 'date-fns';
 	import Inspect from 'svelte-inspect-value';
 	import type { PageData } from './$types';
-	import ShareForm from './ShareForm.svelte';
 
-	// thread isn't undefined in the load function but sveltekit is convinced it is now for some reason
-	const { data }: { data: PageData } = $props();
+    let { data }: { data: PageData } = $props();
 
-	function shouldShowMessageProfile(message: Message, previousMessage: Message | undefined) {
+    function shouldShowMessageProfile(message: Message, previousMessage: Message | undefined) {
 		// Show the profile if the message is the first message in the thread
 		// or if the message is from a different user than the previous message
 		// or if the message is from the same user but was sent more than 5 minutes after the previous message
@@ -38,7 +36,7 @@
 			author: {
 				...message.author,
 				// remove the size param from the avatar_url if it exists
-				avatar_url: clearSearchParams(message.author.avatar_url)
+				avatar_url: message.author.avatar_url ? clearSearchParams(message.author.avatar_url) : undefined
 			}
 		}))
 	);
@@ -49,8 +47,8 @@
 			timeStyle: 'short'
 		})
 	);
-</script>
 
+</script>
 {#snippet user(user: User)}
 	<div class="m-2 flex flex-row items-center gap-2">
 		<UserAvatar {user} class="size-8" />
@@ -78,6 +76,7 @@
 {/snippet}
 <!-- TODO show when in development only -->
 <Inspect.Panel values={{ messages, thread: data.thread }} heading="Thread Messages" />
+<div class="p-4 overflow-auto">
 
 {#if data.thread}
 	<div>
@@ -88,7 +87,6 @@
 			>
 				{data.thread._id}
 			</h1>
-			<span class=" ms-8"> <ShareForm shareForm={data.shareForm} /> </span>
 		</div>
 		{#if data.thread.title}
 			<h2 class="text-xl">{data.thread.title}</h2>
@@ -189,3 +187,5 @@
 		</div>
 	{/if}
 {/if}
+
+</div>
