@@ -55,7 +55,7 @@ export const load: PageServerLoad = async (event) => {
                // RETURN
                return {
                   thread: thread,
-                  shares: (await getThreadShares(event.params.id)).filter(v => (v.expiresAt === null || isBefore(new Date, v.expiresAt)) ),
+                  shares: (await getThreadShares(event.params.id)).filter(v => (v.expiresAt === null || isBefore(new Date(), v.expiresAt)) ),
                   shareForm: await superValidate(zod4(formSchema)),
                };
             } catch (err) {

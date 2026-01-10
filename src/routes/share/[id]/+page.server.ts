@@ -20,7 +20,7 @@ export const load = (async ({ params, locals }) => {
             error(401, 'authentication required');
         }
     }
-    if (shareSettings.expiresAt && isAfter(new Date, shareSettings.expiresAt)) {
+    if (shareSettings.expiresAt && isAfter(new Date(), shareSettings.expiresAt)) {
         // logger.debug("")
         error(404, "not found");
     }
