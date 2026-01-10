@@ -13,7 +13,6 @@ export function encodeBase64UUID(str: string): string {
     }
     // remove '-' characters from uuid
     const concatString = str.split('-').join('');
-    console.debug(concatString)
 
     const data: Uint8Array = decodeHex(concatString);
     return encodeBase64urlNoPadding(data);

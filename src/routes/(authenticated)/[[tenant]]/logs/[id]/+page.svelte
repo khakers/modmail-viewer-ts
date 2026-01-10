@@ -156,7 +156,7 @@
 											{/if}
 										</Table.Cell>
 										<Table.Cell>
-											{#if share.showAnonymouseSenderName}
+											{#if share.showAnonymousSenderName}
 												<CheckIcon class="size-4.5" />
 											{/if}
 										</Table.Cell>

@@ -120,7 +120,7 @@
 						</Form.Field>
 						<Form.Field
 							{form}
-							name="showAnonymouseSenderName"
+							name="showAnonymousSenderName"
 							class="flex flex-row items-center justify-between rounded-lg border p-4"
 						>
 							<Form.Control>
@@ -133,7 +133,7 @@
 									</div>
 									<Switch
 										{...props}
-										bind:checked={$formData.showAnonymouseSenderName}
+										bind:checked={$formData.showAnonymousSenderName}
 									/>
 								{/snippet}
 							</Form.Control>

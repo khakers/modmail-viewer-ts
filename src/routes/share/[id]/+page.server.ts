@@ -17,7 +17,7 @@ export const load = (async ({ params, locals }) => {
     }
     if (shareSettings.requireAuthentication !== false) {
         if (!locals.session) {
-            error(401, 'authorization required');
+            error(401, 'authentication required');
         }
     }
     if (shareSettings.expiresAt && isAfter(new Date, shareSettings.expiresAt)) {
@@ -43,7 +43,7 @@ export const load = (async ({ params, locals }) => {
 
     let thread = convertBSONtoJS(modmailThread) as ModmailThread;
 
-    if (shareSettings.showAnonymouseSenderName !== true) {
+    if (shareSettings.showAnonymousSenderName !== true) {
         thread.messages.forEach((message) => {
             if (message.type === 'anonymous') {
                 message.author = {

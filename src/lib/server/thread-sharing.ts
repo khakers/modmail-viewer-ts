@@ -8,7 +8,7 @@ type sharingOptions = {
     expiresAt: Date | null
     requireAuthentication: boolean
     showInternalMessages: boolean
-    showAnonymouseSenderName: boolean
+    showAnonymousSenderName: boolean
     showSystemMessages: boolean
 }
 

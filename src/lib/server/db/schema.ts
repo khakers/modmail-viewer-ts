@@ -68,7 +68,7 @@ export const sharedThreads = sqliteTable('shared_threads', {
 	createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
 	requireAuthentication: integer({ mode: 'boolean' }).notNull(),
 	showInternalMessages: integer({ mode: 'boolean' }).notNull(),
-	showAnonymouseSenderName: integer({ mode: 'boolean' }).notNull(),
+	showAnonymousSenderName: integer({ mode: 'boolean' }).notNull(),
 	showSystemMessages: integer({ mode: 'boolean' }).notNull(),
 	enabled: integer({ mode: 'boolean' }).notNull().default(true),
 }, (table) => [
