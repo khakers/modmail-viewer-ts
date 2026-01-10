@@ -4,16 +4,28 @@
 	import { Badge } from '$lib/components/ui/badge';
 	import { CopyButton } from '$lib/components/ui/copy-button';
 	import * as Tooltip from '$lib/components/ui/tooltip';
+	import * as Dialog from '$lib/components/ui/dialog/index.js';
+	import * as Table from '$lib/components/ui/table';
 	import UserAvatar from '$lib/components/user-avatar.svelte';
 	import type { Message, User } from '$lib/modmail';
 	import { m } from '$lib/paraglide/messages';
 	import { getLocale } from '$lib/paraglide/runtime';
 	import { clearSearchParams } from '$lib/searchParamUtils';
-	import { CircleCheck, CircleDot } from '@lucide/svelte';
+	import {
+		CheckIcon,
+		CircleCheck,
+		CircleCheckIcon,
+		CircleDot,
+		CircleXIcon,
+		ShieldCheckIcon
+	} from '@lucide/svelte';
 	import { intlFormat, isAfter, isSameDay, subMinutes } from 'date-fns';
 	import Inspect from 'svelte-inspect-value';
 	import type { PageData } from './$types';
 	import ShareForm from './ShareForm.svelte';
+	import { buttonVariants } from '$lib/components/ui/button';
+	import { encodeBase64UUID } from '$lib/uuid-utils';
+	import { Checkbox } from '$lib/components/ui/checkbox';
 
 	// thread isn't undefined in the load function but sveltekit is convinced it is now for some reason
 	const { data }: { data: PageData } = $props();
@@ -76,6 +88,14 @@
 		</Tooltip.Provider>
 	</div>
 {/snippet}
+
+{#snippet booleanIcon(value: boolean)}
+	{#if value}
+		<CheckIcon />
+	{:else}
+		<CircleXIcon />
+	{/if}
+{/snippet}
 <!-- TODO show when in development only -->
 <Inspect.Panel values={{ messages, thread: data.thread }} heading="Thread Messages" />
 
@@ -89,6 +109,77 @@
 				{data.thread._id}
 			</h1>
 			<span class=" ms-8"> <ShareForm shareForm={data.shareForm} /> </span>
+			<span class=" ms-8">
+				<Dialog.Root>
+					<Dialog.Trigger class={buttonVariants({ variant: 'outline' })}>
+						{m.soft_sharp_quail_achieve()}
+					</Dialog.Trigger>
+					<Dialog.Content class="h-[70dvh] content-start md:max-w-2xl">
+						<Dialog.Header>
+							<Dialog.Title>{m.equal_any_clownfish_clap()}</Dialog.Title>
+							<Dialog.Description>{m.spare_crisp_yak_pick()}</Dialog.Description>
+						</Dialog.Header>
+
+						<Table.Root>
+							<Table.Caption>{m.gross_muddy_peacock_attend()}</Table.Caption>
+							<Table.Header>
+								<Table.Row>
+									<Table.Head class="w-[100px]">{m.fun_clear_gibbon_bake()}</Table.Head>
+									<Table.Head>{m.many_smart_jackal_twist()}</Table.Head>
+									<Table.Head>{m.low_helpful_barbel_sprout()}</Table.Head>
+									<Table.Head>{m.direct_yummy_ox_quell()}</Table.Head>
+									<Table.Head>{m.warm_mushy_piranha_burn()}</Table.Head>
+									<Table.Head>{m.stout_white_trout_dine()}</Table.Head>
+									<Table.Head>{m.calm_salty_piranha_link()}</Table.Head>
+									<Table.Head>{m.tame_empty_tiger_type()}</Table.Head>
+								</Table.Row>
+							</Table.Header>
+							<Table.Body class="overflow-y-auto">
+								{#each data.shares as share (share.id)}
+									<Table.Row>
+										<Table.Cell class="font-mono select-all">
+											{encodeBase64UUID(share.id)}
+										</Table.Cell>
+										<Table.Cell>
+											<Checkbox checked={share.enabled} disabled={true} />
+										</Table.Cell>
+										<Table.Cell>
+											{#if share.creatorDiscordUserId === data.user.discordUserId}
+												{m.fancy_acidic_shrimp_skip()}
+											{:else}
+												{share.creatorDiscordUserId}
+											{/if}
+										</Table.Cell>
+										<Table.Cell>
+											{#if share.requireAuthentication}
+												<ShieldCheckIcon class="size-4.5" />
+											{/if}
+										</Table.Cell>
+										<Table.Cell>
+											{#if share.showAnonymouseSenderName}
+												<CheckIcon class="size-4.5" />
+											{/if}
+										</Table.Cell>
+										<Table.Cell>
+											{#if share.showInternalMessages}
+												<CheckIcon class="size-4.5" />
+											{/if}
+										</Table.Cell>
+										<Table.Cell>
+											{#if share.showSystemMessages}
+												<CheckIcon class="size-4.5" />
+											{/if}
+										</Table.Cell>
+										<Table.Cell>
+											{share.expiresAt}
+										</Table.Cell>
+									</Table.Row>
+								{/each}
+							</Table.Body>
+						</Table.Root>
+					</Dialog.Content>
+				</Dialog.Root>
+			</span>
 		</div>
 		{#if data.thread.title}
 			<h2 class="text-xl">{data.thread.title}</h2>
@@ -110,14 +201,14 @@
 			<Badge variant="destructive" class="ml-2">{m.sea_mellow_marmot_inspire()}</Badge>
 		{/if}
 		<div>
-			<span>Created</span>
+			<span>{m.ago_knotty_dingo_kiss()}</span>
 			<time datetime={new Date(data.thread.created_at).toISOString()}>
 				{dateFormatter.format(new Date(data.thread.created_at))}
 			</time>
 		</div>
 		{#if data.thread.closed_at}
 			<div>
-				<span>Closed</span>
+				<span>{m.agent_watery_albatross_renew()}</span>
 				<time datetime={new Date(data.thread.closed_at).toISOString()}>
 					{dateFormatter.format(new Date(data.thread.closed_at))}
 				</time>
@@ -126,12 +217,12 @@
 
 		<div class="flex gap-6">
 			<div class="flex flex-row items-center p-1 ps-0">
-				<h2>Creator:</h2>
+				<h2>{m.teary_mild_boar_hope()}</h2>
 				{@render user(data.thread.creator)}
 			</div>
 			{#if data.thread.creator.id !== data.thread.recipient.id}
 				<div class="flex flex-row items-center p-1 ps-0">
-					<h2>Recipient:</h2>
+					<h2>{m.alive_true_salmon_drop()}</h2>
 					{@render user(data.thread.recipient)}
 				</div>
 			{/if}
