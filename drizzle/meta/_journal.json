@@ -22,6 +22,13 @@
       "when": 1745357724801,
       "tag": "0002_naive_leech",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1768037625556,
+      "tag": "0003_chunky_wilson_fisk",
+      "breakpoints": true
     }
   ]
 }
