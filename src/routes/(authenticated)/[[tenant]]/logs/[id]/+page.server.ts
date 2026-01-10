@@ -1,11 +1,18 @@
 import { building } from '$app/environment';
 import { convertBSONtoJS } from '$lib/bsonUtils';
+import { logger } from '$lib/logger';
 import type { ModmailThread } from '$lib/modmail';
 import { hydrateS3AttachmentURLs } from '$lib/server/s3';
 import { error } from '$lib/server/skUtils';
 import { MultitenancyDisabledError } from '$lib/server/tenancy/monoTenantMongodb';
-import type { PageServerLoad } from './$types';
+import { getThreadShares, shareThread } from '$lib/server/thread-sharing';
+import { encodeBase64UUID } from '$lib/uuid-utils';
 import { isHttpError } from '@sveltejs/kit';
+import { superValidate } from 'sveltekit-superforms';
+import { zod4 } from "sveltekit-superforms/adapters";
+import type { Actions, PageServerLoad } from './$types';
+import { formSchema } from "./schema";
+import { isBefore } from 'date-fns';
 
 
 export const load: PageServerLoad = async (event) => {
@@ -45,8 +52,11 @@ export const load: PageServerLoad = async (event) => {
                for (const message of thread.messages) {
                   message.attachments = await hydrateS3AttachmentURLs(message.attachments);
                }
+               // RETURN
                return {
-                  thread: thread
+                  thread: thread,
+                  shares: (await getThreadShares(event.params.id)).filter(v => (v.expiresAt === null || isBefore(new Date(), v.expiresAt)) ),
+                  shareForm: await superValidate(zod4(formSchema)),
                };
             } catch (err) {
                if (isHttpError(err)) {
@@ -72,4 +82,21 @@ export const load: PageServerLoad = async (event) => {
    }
 
 
+};
+
+export const actions: Actions = {
+   async share(event) {
+      const form = await superValidate(event.request, zod4(formSchema));
+      if (!event.locals.Tenant) {
+         logger.error({}, "failed to create threadShare because request local tenant was undefined")
+         return { success: false, form }
+      }
+      const id = await shareThread(event.params.id, event.locals.Tenant?.id, event.locals.user.discordUserId, form.data)
+      event.locals.logger.debug({ form: form }, "share submission");
+
+      return { success: true, shareId: encodeBase64UUID(id), form }
+   },
+   async deleteShare(event) {
+      // TODO verify user permissions
+   }
 };

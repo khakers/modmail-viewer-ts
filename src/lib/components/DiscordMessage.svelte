@@ -1,16 +1,16 @@
 <script lang="ts">
+	import Markdown from '$lib/components/markdown/markdown.svelte';
 	import * as Avatar from '$lib/components/ui/avatar';
 	import { Badge } from '$lib/components/ui/badge';
 	import type { Message } from '$lib/modmail';
-	import { isToday } from 'date-fns';
-	import EyeOff from '@lucide/svelte/icons/eye-off';
-	import BotMessageSquare from '@lucide/svelte/icons/bot-message-square';
-	import VenetianMask from '@lucide/svelte/icons/venetian-mask';
 	import { m } from '$lib/paraglide/messages';
 	import { getLocale } from '$lib/paraglide/runtime';
-	import Markdown from '$lib/components/markdown/markdown.svelte';
-	import MessageAttachments from './MessageAttachments.svelte';
 	import { ShieldUserIcon } from '@lucide/svelte';
+	import BotMessageSquare from '@lucide/svelte/icons/bot-message-square';
+	import EyeOff from '@lucide/svelte/icons/eye-off';
+	import VenetianMask from '@lucide/svelte/icons/venetian-mask';
+	import { isToday } from 'date-fns';
+	import MessageAttachments from './MessageAttachments.svelte';
 	
 	const {
 		message,

@@ -16,7 +16,15 @@ const tenantSource = jsonSource;
 export function getMongodbClient(tenant: string | undefined): MongoClient | undefined {
 	logger.debug({ tenant }, 'getMongodbClient');
 	if (tenant) {
-		return tenantSource.getMongodbClient(tenant);
+		return tenantSource.getMongodbClientFromId(tenant);
+	}
+	return undefined;
+}
+
+export function getMongodbClientFromId(id: string | undefined): MongoClient | undefined {
+	logger.debug({ id }, 'getMongodbClient');
+	if (id) {
+		return tenantSource.getMongodbClientFromId(id);
 	}
 	return undefined;
 }
