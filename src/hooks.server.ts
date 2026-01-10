@@ -17,6 +17,7 @@ export const init: ServerInit = async () => {
 
 	if (!dev && !building) {
 		logger.info('Running migrations');
+		// TODO db is also initialized in src/lib/server/db/index.ts
 		const db = drizzle(env.DATABASE_URL);
 		migrate(db, {
 			migrationsFolder: './drizzle'
