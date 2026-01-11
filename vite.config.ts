@@ -10,10 +10,10 @@ import devtoolsJson from 'vite-plugin-devtools-json';
 
 export default defineConfig({
 	build: {
-		target: "ES2024",
+		target: "esnext",
 		sourcemap: true
 	},
-	optimizeDeps: { esbuildOptions: { target: "ES2024" } },
+	optimizeDeps: { esbuildOptions: { target: "esnext" } },
 	server: {
 		watch: {
 			ignored: [
