@@ -61,7 +61,7 @@ interface OpenModmailAttachment extends Attachment {
 
 export type Message = {
     author: User,
-    attachments: Attachment[] | OpenModmailAttachment[],
+    attachments: Attachment[] | OpenModmailAttachment[] | null,
     content: string,
     edited?: boolean,
     message_id: string,
