@@ -24,7 +24,10 @@ async function generatePresignedS3Url(attachment: OpenModmailAttachment) {
     return await minioClient.presignedGetObject(attachment.s3.bucket, attachment.s3.object, 24 * 60 * 60);
 }
 
-export async function hydrateS3AttachmentURLs(attachments: Attachment[] | OpenModmailAttachment[]) {
+export async function hydrateS3AttachmentURLs(attachments: Attachment[] | OpenModmailAttachment[] | null) {
+    if (!attachments || attachments.length === 0) {
+        return attachments;
+    }
     const promises = attachments.map(async (attachment) => {
         if ('type' in attachment && attachment.type === 'openmodmail_s3') {
             if (presigned) {

@@ -82,7 +82,9 @@
 			<Markdown content={message.content} type="extended" />
 		</div>
 	</div>
-	<div class="max-w-[600px]">
-		<MessageAttachments attachments={message.attachments} />
-	</div>
+	{#if message.attachments}
+		<div class="max-w-150">
+			<MessageAttachments attachments={message.attachments} />
+		</div>
+	{/if}
 </div>
