@@ -1,3 +1,4 @@
+# TODO update dockerfile for node 25. Requires refactor because corepack has been removed
 FROM node:24 AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
