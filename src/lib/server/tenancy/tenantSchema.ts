@@ -11,6 +11,8 @@ export const TenantSchema = z.object({
     connection_uri: z.string().url(),
     guild_id: z.string().nonempty("Guild ID cannot be empty").regex(/^\d+$/, "Guild ID must be a valid Discord ID"),
     bot_id: z.string().nonempty().regex(/^\d+$/, "Bot ID must be a valid Discord ID"),
+    database_name: z.string().optional(),
+    thread_collection_name: z.string().default("logs"),
 });
 
 export type TenantConfig = z.infer<typeof TenantSchema>;

@@ -16,6 +16,7 @@ type sharingOptions = {
  * Shares a thread by creating a new shared thread entry in the database.
  *
  * @param threadId - The unique identifier of the thread to be shared.
+ * @param tenantId - The unique identifier of the tenant sharing the thread.
  * @param author - The Discord user ID of the author sharing the thread.
  * @param options - Additional sharing options.
  * @returns A promise that resolves to the ID of the newly created shared thread entry.
