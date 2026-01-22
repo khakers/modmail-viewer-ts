@@ -88,7 +88,7 @@
 		}
 	});
 
-	$inspect(ast);
+	// $inspect(ast);
 
 	function getElement(type: string) {
 		const el = components[type] || Text;

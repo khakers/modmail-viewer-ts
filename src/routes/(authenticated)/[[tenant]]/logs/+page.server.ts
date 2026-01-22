@@ -8,17 +8,10 @@ import { z } from 'zod';
 import type { Filter } from 'mongodb';
 import { parseSearchParams } from 'zod-search-params';
 import { urlWithSearchParams } from '$lib/searchParamUtils';
+import { paramsSchema } from './schema';
 
 
-const statusSchema = z.enum(['all', "open", "closed"]).default("all").catch("all");
 
-const pageSchema = z.number().int().positive().default(1).catch(1);
-
-const paramsSchema = z.object({
-   status: statusSchema,
-   page: pageSchema,
-   pageSize: z.number().min(5).positive().int().default(10).catch(10),
-});
 
 
 export const load: PageServerLoad = async (event) => {

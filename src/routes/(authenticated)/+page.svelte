@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { resolveRoute } from '$app/paths';
+	import { resolve, resolveRoute } from '$app/paths';
 	import type { PageData } from './$types';
 	import * as Card from '$lib/components/ui/card/index.js';
 	import { m } from '$lib/paraglide/messages';
@@ -14,7 +14,7 @@
 			<Card.Root>
 				<Card.Header>
 					<Card.Title
-						><a href={resolveRoute('/[[tenant]]/logs', { tenant: tenant.slug })}>{tenant.name}</a
+						><a href={resolve('/(authenticated)/[[tenant]]/logs', { tenant: tenant.slug })}>{tenant.name}</a
 						></Card.Title
 					>
 					<Card.Description>{tenant.description}</Card.Description>

@@ -18,7 +18,7 @@
 	let {
 		expiresAt = $bindable(),
 		props
-	}: { expiresAt: Date | null; props?: Expand<ControlAttrs> } = $props();
+	}: { expiresAt: Date | null; props: Expand<ControlAttrs> } = $props();
 
 	const df = new DateFormatter(getLocale(), {
 		dateStyle: 'long'

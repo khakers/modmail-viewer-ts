@@ -7,40 +7,44 @@
 	import type { TenantInfo, User } from './nav';
 	import TenantSwitcher from './tenant-switcher.svelte';
 	import ThemeSelector from './theme-selector.svelte';
-	import { resolveRoute } from '$app/paths';
+	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import Inbox from '@lucide/svelte/icons/inbox';
-	import ChartColumn from '@lucide/svelte/icons/chart-column';
 
+	// TODO move routes to easier to find place
+	// could be prerendered remote query
 	const data = $derived({
 		navMain: [
-			{
-				title: m.deft_equal_shark_pat(),
-				url: resolveRoute('/[[tenant]]/logs/dashboard', { tenant: page.params.tenant }),
-				icon: ChartColumn
-			},
+			// {
+			// 	title: m.deft_equal_shark_pat(),
+			// 	url: resolve('/(authenticated)/[[tenant]]/logs/dashboard', { tenant: page.params.tenant }),
+			// 	icon: ChartColumn
+			// },
 			{
 				title: m.merry_knotty_loris_cure(),
-				url: resolveRoute('/[[tenant]]/logs', { tenant: page.params.tenant }),
+				url: resolve('/(authenticated)/[[tenant]]/logs', { tenant: page.params.tenant }),
 				icon: Inbox,
 				items: [
 					{
 						title: m.tidy_such_rabbit_push(),
 						url:
-							resolveRoute('/[[tenant]]/logs', { tenant: page.params.tenant }) +
-							'?status=all'
+							resolve('/(authenticated)/[[tenant]]/logs', {
+								tenant: page.params.tenant
+							}) + '?status=all'
 					},
 					{
 						title: m.fancy_inclusive_capybara_read(),
 						url:
-							resolveRoute('/[[tenant]]/logs', { tenant: page.params.tenant }) +
-							'?status=open'
+							resolve('/(authenticated)/[[tenant]]/logs', {
+								tenant: page.params.tenant
+							}) + '?status=open'
 					},
 					{
 						title: m.next_smug_bumblebee_pick(),
 						url:
-							resolveRoute('/[[tenant]]/logs', { tenant: page.params.tenant }) +
-							'?status=closed'
+							resolve('/(authenticated)/[[tenant]]/logs', {
+								tenant: page.params.tenant
+							}) + '?status=closed'
 					}
 				]
 			}
@@ -59,12 +63,18 @@
 		tenants: TenantInfo[];
 		currentTenant?: string;
 	} = $props();
+
+	$inspect(tenants).with(console.trace);
+	$inspect(currentTenant).with(console.trace);
 </script>
 
 <Sidebar.Root bind:ref {collapsible} {...restProps}>
-	<Sidebar.Header>
-		<TenantSwitcher {tenants} {currentTenant} />
-	</Sidebar.Header>
+	{#if tenants && currentTenant && tenants.length > 0}
+		<Sidebar.Header>
+			<TenantSwitcher {tenants} {currentTenant} />
+		</Sidebar.Header>
+	{/if}
+
 	<Sidebar.Content>
 		<NavMain items={data.navMain} />
 	</Sidebar.Content>
