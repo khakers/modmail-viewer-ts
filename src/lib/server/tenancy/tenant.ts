@@ -9,6 +9,7 @@ import { GetAllTenants } from "./sources/jsonSource";
 import { Cacheable } from "cacheable";
 import { coalesceAsync } from "../coaleseAsync";
 import { hashString } from '$lib/server/cache-utils';
+import type { ModmailThread } from "$lib/modmail";
 
 
 export const MULTITENANCY_ENABLED = env.TENANT_JSON !== undefined;
@@ -59,6 +60,57 @@ export async function getTenants(guildIds: string[]) {
         .map(tenant => new Tenant({ ...tenant.tenant, mongoClient: tenant.MongodbClient }))
 }
 
+// tennant not found error
+export class TenantNotFoundError extends Error {
+    constructor(slug: string) {
+        super(`Tenant with slug "${slug}" not found`);
+        this.name = "TenantNotFoundError";
+    }
+}
+
+/**
+ * Represents a tenant (guild/instance) of the application, encapsulating tenant metadata
+ * and the MongoDB client associated with that tenant.
+ *
+ * This class provides:
+ * - Factory creation via `Tenant.create(slug)` which loads tenant metadata from persistent storage.
+ * - A cached permission resolution helper `getPermissionsLevel` that derives a user's
+ *   PermissionLevel based on Discord roles and user id.
+ * - Convenience getters for common tenant properties (id, slug, guildId, name, title,
+ *   description, botId, and the underlying mongoClient).
+ *
+ * Remarks:
+ * - The instance is immutable after construction; tenant data (including the mongo client)
+ *   is stored as a private readonly payload.
+ * - Permission lookups are cached per-tenant and per-bot to reduce database calls. The
+ *   method `getPermissionsLevel` may use an in-memory or external cache and will attempt
+ *   to populate it if missing.
+ *
+ * Example:
+ * ```ts
+ * // create a Tenant instance (throws if not found)
+ * const tenant = await Tenant.create("example-slug");
+ *
+ * // resolve a user's permission level
+ * const level = await tenant.getPermissionsLevel(["moderator", "helper"], "1234567890");
+ * ```
+ *
+ * @public
+ *
+ * @throws {Error} When `Tenant.create(slug)` is called and no tenant metadata is found
+ *                  for the provided slug.
+ *
+ * @remarks For `getPermissionsLevel`:
+ * - Parameters:
+ *   - `discordRoles`: array of Discord role IDs or names assigned to the user.
+ *   - `discordUserId`: the Discord user's ID to check for direct/owner overrides.
+ * - Returns a Promise resolving to the computed `PermissionLevel` or `undefined` if no
+ *   applicable permission mapping exists.
+ *
+ * @see Tenant.create
+ * @see getModmailPermissions
+ * @see getUserPermissionLevel
+ */
 export class Tenant {
     private readonly tenantData: TenantInfo & { mongoClient: MongoClient };
 
@@ -69,7 +121,7 @@ export class Tenant {
     static async create(slug: string): Promise<Tenant> {
         const data = await getTenant(slug);
         if (!data) {
-            throw new Error(`Tenant with slug "${slug}" not found`);
+            throw new TenantNotFoundError(slug);
         }
         return new Tenant(data);
     }
@@ -123,5 +175,23 @@ export class Tenant {
     }
     get mongoClient() {
         return this.tenantData.mongoClient;
+    }
+
+    get mongoThreadCollection() {
+        return this.tenantData.mongoClient
+			.db(this.tenantData.database_name)
+			.collection<ModmailThread>(this.tenantData.thread_collection_name || 'logs');
+    }
+
+    toJSON() {
+        return {
+            id: this.id,
+            slug: this.slug,
+            guildId: this.guildId,
+            name: this.name,
+            title: this.title,
+            description: this.description,
+            botId: this.botId
+        }
     }
 }

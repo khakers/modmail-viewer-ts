@@ -67,7 +67,7 @@ const handleLogging: Handle = async ({ event, resolve }) => {
 				query: Object.fromEntries(url.searchParams),
 				headers: Object.fromEntries(event.request.headers),
 				agent: event.request.headers.get('user-agent'),
-				remoteAddress: event.getClientAddress(),
+				remoteAddress: event.getClientAddress()
 			}
 		};
 
@@ -104,7 +104,11 @@ const handleAuthentication: Handle = async ({ event, resolve }) => {
 
 		if (!sessionToken) {
 			event.locals.session = null;
-			if (event.route.id !== null && !event.route.id.startsWith('/auth') && !event.route.id.startsWith('/share')) {
+			if (
+				event.route.id !== null &&
+				!event.route.id.startsWith('/auth') &&
+				!event.route.id.startsWith('/share')
+			) {
 				return redirect(307, '/auth/login');
 			}
 			return resolve(event);
@@ -183,7 +187,22 @@ const handleInjectTenant: Handle = async ({ event, resolve }) => {
 					"No tenant specified in the request, using first tenant that matched the user's guilds"
 				);
 			} else {
-				event.locals.Tenant = await Tenant.create(event.params.tenant);
+				try {
+					event.locals.Tenant = await Tenant.create(event.params.tenant);
+				} catch (e) {
+					if (e instanceof Error && e.name === 'TenantNotFoundError') {
+						logger.error(
+							{ err: e, tenantSlug: event.params.tenant },
+							'Tenant not found'
+						);
+						return error(404, 'Tenant not found', event);
+					}
+					logger.error(
+						{ err: e, tenantSlug: event.params.tenant },
+						'Error loading tenant'
+					);
+					return error(500, 'encountered an error loading tenant', event);
+				}
 			}
 			event.locals.logger = event.locals.logger.child({
 				tenantId: event.locals.Tenant.id,
@@ -203,7 +222,7 @@ const handleTenancyAuthorization: Handle = async ({ event, resolve }) => {
 			return resolve(event);
 		}
 		// TODO sveltekit does not support a custom error page for errors thrown via hooks
-		if (event.route.id?.startsWith('/[[tenant]]')) {
+		if (event.route.id?.startsWith('/(authenticated)/[[tenant]]')) {
 			// Ensure the user has access to the tenant
 			if (!event.locals.Tenant) {
 				// No tenant found, return without resolving
@@ -250,6 +269,13 @@ const handleTenancyAuthorization: Handle = async ({ event, resolve }) => {
 			const permissionLevel = await event.locals.Tenant.getPermissionsLevel(
 				userGuildInfo.roles,
 				event.locals.session.discordUserId
+			);
+
+			logger.trace(
+				{
+					permissionLevel
+				},
+				'Determined user permission level for tenant'
 			);
 
 			if (
