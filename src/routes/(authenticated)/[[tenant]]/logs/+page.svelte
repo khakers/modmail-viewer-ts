@@ -68,7 +68,7 @@
 <div class="w-full overflow-auto">
 	<Table.Root>
 		<Table.Caption>{m.merry_aloof_goat_fond()}</Table.Caption>
-		<Table.Header style={'view-transition-name: log-table-header'}>
+		<Table.Header style='view-transition-name: log-table-header'>
 			<Table.Row>
 				<Table.Head class="w-[100px]">{m.sharp_these_pug_transform()}</Table.Head>
 				<Table.Head>{m.weary_tough_otter_fall()}</Table.Head>
@@ -78,7 +78,7 @@
 				<Table.Head>{m.every_day_duck_rest()}</Table.Head>
 			</Table.Row>
 		</Table.Header>
-		<Table.Body class={'table-body'}>
+		<Table.Body class='table-body'>
 			{#each data.threads as thread (thread._id)}
 				<!-- Display the recipient if the recipient is different than the creator -->
 				<Table.Row>
@@ -89,15 +89,19 @@
 							</HoverCard.Trigger>
 							<HoverCard.Content>
 								<div class="flex justify-start space-x-2">
-									<UserAvatar user={thread.recipient} class="size-10" />
+								{#if thread.messages.length >= 1}
+									{@const sender = thread.messages[thread.messages.length - 1]?.author ?? thread.recipient}
+									<UserAvatar user={sender} class="size-10" />
 									<div class="space-y-1">
 										<h4 class="text-sm font-semibold">
-											{thread.recipient.name}
+											{sender.name}
 										</h4>
-										<h5 class="text-sm">{m.agent_moving_anteater_jump()}</h5>
-										<p class="text-sm">
-											{thread.messages[thread.messages.length - 1]?.content}
-										</p>
+										<div>
+											<h5 class="text-sm">{m.agent_moving_anteater_jump()}</h5>
+											<p class="text-sm border-2 border-muted bg-accent rounded-md max-h-24 overflow-hidden px-1">
+												{thread.messages[thread.messages.length - 1]?.content}
+											</p>
+										</div>
 										<div class="flex items-center pt-1">
 											<!-- <CalendarDays class="mr-2 size-4 opacity-70" /> -->
 											<span class="text-muted-foreground text-xs"
@@ -105,6 +109,11 @@
 											>
 										</div>
 									</div>
+								{:else}
+									<p class="text-sm italic text-muted-foreground">{m.simple_merry_slug_chop()}</p>
+								{/if}
+
+
 								</div>
 							</HoverCard.Content>
 						</HoverCard.Root>
