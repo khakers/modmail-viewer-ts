@@ -1,4 +1,4 @@
-import { discord, getDiscordRefreshToken, updateAccessToken } from './auth';
+import { discord, getDiscordRefreshToken, purgeRefreshToken, updateAccessToken } from './auth';
 import { logger } from '$lib/logger';
 import { Cacheable } from 'cacheable';
 import { env } from '$env/dynamic/private';
@@ -183,16 +183,27 @@ export class DiscordApi {
 				`Access token expired for user ${this.discordToken.uid}. Refreshing...`
 			);
 			const token = await getDiscordRefreshToken(this.discordToken.uid);
-			const refreshReponse = await discord.refreshAccessToken(token);
+			try {
+				const refreshReponse = await discord.refreshAccessToken(token);
 
-			this.discordToken.accessToken = refreshReponse.accessToken();
-			this.discordToken.accessTokenExpiresAt = refreshReponse.accessTokenExpiresAt();
+				this.discordToken.accessToken = refreshReponse.accessToken();
+				this.discordToken.accessTokenExpiresAt = refreshReponse.accessTokenExpiresAt();
 
-			await updateAccessToken(
-				this.discordToken.uid,
-				this.discordToken.accessToken,
-				this.discordToken.accessTokenExpiresAt
-			);
+				await updateAccessToken(
+					this.discordToken.uid,
+					this.discordToken.accessToken,
+					this.discordToken.accessTokenExpiresAt
+				);
+			} catch (err) {
+				// This is a temporary solution to handle refresh token invalid_grant errors and any other refresh error that might occur.
+				// 
+				try {
+					await purgeRefreshToken(this.discordToken.uid);
+				} catch (purgeErr) {
+					throw new AggregateError([err, purgeErr], 'encountered an error trying to purge refresh token after failed refresh attempt');
+				}
+				throw err
+			}
 		}
 	}
 

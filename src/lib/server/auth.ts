@@ -44,6 +44,15 @@ export async function updateAccessToken(discordID: string, accessToken: string, 
 	return;
 }
 
+export async function purgeRefreshToken(discordID: string) {
+	logger.warn({ uid: discordID }, 'Purging users refresh token');
+	// Remove the refresh token for the user in the session table
+	db.transaction((tx) => {
+		tx.delete(table.session).where(eq(table.session.discordUserId, discordID));
+		tx.delete(table.user).where(eq(table.user.uid, discordID));
+	});
+}
+
 export async function getDiscordRefreshToken(uid: string) {
 	const [result] = await db
 		.select({ token: table.user.refreshToken })
@@ -80,10 +89,7 @@ export async function createSession(token: string, discordTokens: table.User) {
 				'failed to revoke token while setting'
 			);
 		}
-		await db
-			.update(table.user)
-			.set(discordTokens)
-			.where(eq(table.user.uid, discordTokens.uid));
+		await db.update(table.user).set(discordTokens).where(eq(table.user.uid, discordTokens.uid));
 	} else {
 		await db.insert(table.user).values(discordTokens);
 	}
@@ -181,7 +187,7 @@ export async function invalidateSession(sessionId: string) {
 			.select({ refreshToken: table.user.refreshToken })
 			.from(table.user)
 			.where(eq(table.user.uid, discordUidQuery.uid));
-		logger.trace({}, "revoking refresh token");
+		logger.trace({}, 'revoking refresh token');
 		try {
 			await discord.revokeToken(result?.refreshToken);
 		} catch (e) {
@@ -190,7 +196,7 @@ export async function invalidateSession(sessionId: string) {
 	}
 
 	await db.delete(table.session).where(eq(table.session.id, sessionId));
-	logger.trace({ sessionId },'succesfully invalidated session');
+	logger.trace({ sessionId }, 'succesfully invalidated session');
 }
 
 // Invalidate all sessions and revoke the discord refresh token
@@ -204,7 +210,7 @@ export async function invalidateAllSessions(uid: string) {
 		.from(table.user)
 		.where(eq(table.user.uid, uid));
 
-	logger.trace({ deleted }, "invalidated sessions");
+	logger.trace({ deleted }, 'invalidated sessions');
 	try {
 		await discord.revokeToken(result?.refreshToken);
 	} catch (e) {
