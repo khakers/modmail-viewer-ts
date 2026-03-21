@@ -11,6 +11,7 @@ import { drizzle } from 'drizzle-orm/better-sqlite3';
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
 import { env } from '$env/dynamic/private';
 import { building, dev, version } from '$app/environment';
+import { OAuth2RequestError } from 'arctic';
 
 export const init: ServerInit = async () => {
 	console.log('init');
@@ -150,6 +151,23 @@ const handleAuthentication: Handle = async ({ event, resolve }) => {
 					guilds: guilds
 				};
 			} catch (e) {
+				// if type is OAuth2RequestError
+				if (e instanceof OAuth2RequestError) {
+					logger.error(
+						{ err: e, user: session.discordUserId },
+						'Discord OAuth2 error'
+					);
+					event.cookies.delete(auth.sessionCookieName, { path: '/' });
+
+					// return redirect to login page with error message
+					return new Response(null, {
+						status: 307,
+						headers: {
+							'Location': '/auth/login?error=discord_oauth_error',
+							'Set-Cookie': `${auth.sessionCookieName}=; Path=/; Max-Age=0`
+						}
+					});
+				}
 				logger.error(
 					{ err: e },
 					'encountered an error trying to add discord user data to request local'
