@@ -21,6 +21,7 @@ declare global {
 			}
 			session: import('$lib/server/auth').SessionValidationResult['session'];
 			Tenant?: Tenant; // The tenant information for the current request, if applicable
+			discordApiClient?: import('$lib/server/discord').CacheableDiscordApi; // The Discord API client for the current request, if applicable
 		}
 		// interface PageData {}
 		// interface PageState {}
