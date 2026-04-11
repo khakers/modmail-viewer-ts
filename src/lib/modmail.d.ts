@@ -66,7 +66,7 @@ export type Message = {
     edited?: boolean,
     message_id: string,
     timestamp: string,
-    type: "thread_message" | "system" | "internal" | "anonymous",
+    type: "thread_message" | "system" | "internal" | "anonymous" | "note",
     nfsw?: boolean,
     open: boolean,
     recipient: User,

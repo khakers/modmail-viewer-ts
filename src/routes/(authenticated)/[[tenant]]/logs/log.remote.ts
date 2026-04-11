@@ -149,3 +149,65 @@ export const getThreads = query(paramsSchema, async (params) => {
 		error(500, 'Internal Server Error', req);
 	}
 });
+
+
+export const getThreadsForUser = query(z.string(), async (userId) => {
+	const { req, client } = guard();
+	// get all threads where recipient.id or creator.id matches the userId, sorted by created_at desc
+	try {
+		const modmailThreads = await client
+			.find({
+				$or: [{ 'recipient.id': userId }, { 'creator.id': userId }]
+			})
+			.sort({ created_at: -1 })
+			.toArray();
+		if (!modmailThreads) {
+			error(500, 'Failed to retrieve threads', req);
+		}
+		const convertedThreads = convertBSONtoJS(modmailThreads) as ModmailThread[];
+
+		return convertedThreads.map((thread) => {
+			// Trim all messages but first and last to reduce unnecesary transferred data
+			const messageCount = thread.messages.length;
+			thread.messages =
+				thread.messages.length > 1
+					? [thread.messages[0], thread.messages[thread.messages.length - 1]]
+					: thread.messages;
+			return { message_count: messageCount, ...thread };
+		});
+	} catch (err) {
+		logger.error(err);
+		error(500, 'Internal Server Error', req);
+	}
+});
+
+export const getUserAlsoKnownAs = query(z.string(), async (userId) => {
+	const { req, client } = guard();
+	try {
+		const threads = await client
+			.find({
+				$or: [{ 'recipient.id': userId }, { 'creator.id': userId }]
+			})
+			.project({ 'recipient': 1, 'creator': 1 })
+			.toArray();
+		if (!threads) {
+			error(500, 'Failed to retrieve threads', req);
+		}
+		const convertedThreads = convertBSONtoJS(threads) as ModmailThread[];
+
+		const userIds = new Set<string>();
+		convertedThreads.forEach((thread) => {
+			if (thread.recipient?.id && thread.recipient.id !== userId) {
+				userIds.add(thread.recipient.id);
+			}
+			if (thread.creator?.id && thread.creator.id !== userId) {
+				userIds.add(thread.creator.id);
+			}
+		});
+
+		return Array.from(userIds);
+	} catch (err) {
+		logger.error(err);
+		error(500, 'Internal Server Error', req);
+	}
+});

@@ -1,35 +1,22 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 	import * as Table from '$lib/components/ui/table';
-	import type { ModmailThread } from '$lib/modmail';
-	import { Badge } from '$lib/components/ui/badge';
-	import CircleDot from '@lucide/svelte/icons/circle-dot';
-	import CircleCheck from '@lucide/svelte/icons/circle-check';
 	import { m } from '$lib/paraglide/messages';
-	import * as HoverCard from '$lib/components/ui/hover-card/index.js';
 	import HoverDate from '$lib/components/hover-date.svelte';
 	import UserAvatar from '$lib/components/user-avatar.svelte';
 	import Paginator from '$lib/components/paginator.svelte';
 	import { urlWithSearchParams } from '$lib/searchParamUtils';
 	import { page } from '$app/state';
+	import ProfilePopout from '$lib/components/modmail/profile-hover-card.svelte';
+	import ThreadStatusBadge from '$lib/components/modmail/thread-status-badge.svelte';
+	import ThreadHoverCard from '$lib/components/modmail/thread-hover-card.svelte';
 
 	let { data }: { data: PageData } = $props();
 
 	let uid = $props.id();
 
-	$inspect(data);
+	// $inspect(data);
 </script>
-
-{#snippet ticketStatus(thread: ModmailThread)}
-	{#if thread.open}
-		<Badge style={`view-transition-name: log-${thread._id ?? uid}-badge;`}><CircleDot class="me-1 h-4" />{m.deft_wild_platypus_peel()}</Badge>
-	{:else}
-		<Badge variant="secondary" style={`view-transition-name: log-${thread._id ?? uid}-badge;`}>
-			<CircleCheck class="me-1 h-4" />
-			{m.gross_sharp_nuthatch_bloom()}
-		</Badge>
-	{/if}
-{/snippet}
 
 <header class="flex flex-row items-baseline gap-8">
 	<h2 class="text-xl">{m.jumpy_careful_iguana_wave()}</h2>
@@ -68,70 +55,50 @@
 <div class="w-full overflow-auto">
 	<Table.Root>
 		<Table.Caption>{m.merry_aloof_goat_fond()}</Table.Caption>
-		<Table.Header style='view-transition-name: log-table-header'>
+		<Table.Header style="view-transition-name: log-table-header">
 			<Table.Row>
-				<Table.Head class="w-[100px]">{m.sharp_these_pug_transform()}</Table.Head>
+				<Table.Head class="w-25">{m.sharp_these_pug_transform()}</Table.Head>
 				<Table.Head>{m.weary_tough_otter_fall()}</Table.Head>
 				<Table.Head>{m.plane_petty_impala_buy()}</Table.Head>
+				<Table.Head>Creator</Table.Head>
 				<Table.Head>{m.fuzzy_lazy_bee_list()}</Table.Head>
 				<Table.Head>{m.frail_swift_elk_hurl()}</Table.Head>
 				<Table.Head>{m.every_day_duck_rest()}</Table.Head>
 			</Table.Row>
 		</Table.Header>
-		<Table.Body class='table-body'>
+		<Table.Body class="table-body">
 			{#each data.threads as thread (thread._id)}
 				<!-- Display the recipient if the recipient is different than the creator -->
 				<Table.Row>
 					<Table.Cell class="font-medium">
-						<HoverCard.Root>
-							<HoverCard.Trigger href={'./logs/' + thread._id}>
-								<span class="uppercase font-mono" style={`view-transition-name: log-id-title-${thread._id};`}>{thread._id}</span>
-							</HoverCard.Trigger>
-							<HoverCard.Content>
-								<div class="flex justify-start space-x-2">
-								{#if thread.messages.length >= 1}
-									{@const sender = thread.messages[thread.messages.length - 1]?.author ?? thread.recipient}
-									<UserAvatar user={sender} class="size-10" />
-									<div class="space-y-1">
-										<h4 class="text-sm font-semibold">
-											{sender.name}
-										</h4>
-										<div>
-											<h5 class="text-sm">{m.agent_moving_anteater_jump()}</h5>
-											<p class="text-sm border-2 border-muted bg-accent rounded-md max-h-24 overflow-hidden px-1">
-												{thread.messages[thread.messages.length - 1]?.content}
-											</p>
-										</div>
-										<div class="flex items-center pt-1">
-											<!-- <CalendarDays class="mr-2 size-4 opacity-70" /> -->
-											<span class="text-muted-foreground text-xs"
-												>{thread.message_count} messages</span
-											>
-										</div>
-									</div>
-								{:else}
-									<p class="text-sm italic text-muted-foreground">{m.simple_merry_slug_chop()}</p>
-								{/if}
-
-
-								</div>
-							</HoverCard.Content>
-						</HoverCard.Root>
+						<ThreadHoverCard {thread} />
 					</Table.Cell>
-					<Table.Cell>{@render ticketStatus(thread)}</Table.Cell>
 					<Table.Cell>
-						<div class="flex flex-row items-center gap-2">
-							<UserAvatar user={thread.recipient} class="size-6" />
-							{thread.recipient.name}
-						</div>
+						<ThreadStatusBadge {thread} transitionId={thread._id ?? uid} />
+					</Table.Cell>
+					<Table.Cell>
+						<ProfilePopout user={thread.creator}>
+							<div class="flex flex-row items-center gap-2">
+								<UserAvatar user={thread.recipient} class="size-6" />
+								{thread.recipient.name}
+							</div>
+						</ProfilePopout>
+					</Table.Cell>
+					<Table.Cell>
+						<ProfilePopout user={thread.creator}>
+							<div class="flex flex-row items-center gap-2">
+								<UserAvatar user={thread.creator} class="size-6" />
+								{thread.creator.name}
+							</div>
+						</ProfilePopout>
 					</Table.Cell>
 					<Table.Cell class="max-w-64 truncate">
 						{#if thread.messages[0]?.content}
 							{thread.messages[0].content}
 						{:else}
-							<span class="text-muted-foreground"
-								>{m.seemly_next_blackbird_dig()}</span
-							>
+							<span class="text-muted-foreground">
+								{m.seemly_next_blackbird_dig()}
+							</span>
 						{/if}
 					</Table.Cell>
 					<Table.Cell>

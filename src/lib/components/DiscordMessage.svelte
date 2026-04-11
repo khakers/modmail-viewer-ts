@@ -5,13 +5,14 @@
 	import type { Message } from '$lib/modmail';
 	import { m } from '$lib/paraglide/messages';
 	import { getLocale } from '$lib/paraglide/runtime';
-	import { ShieldUserIcon } from '@lucide/svelte';
+	import { CircleQuestionMark, ShieldUserIcon, StickyNote } from '@lucide/svelte';
 	import BotMessageSquare from '@lucide/svelte/icons/bot-message-square';
 	import EyeOff from '@lucide/svelte/icons/eye-off';
 	import VenetianMask from '@lucide/svelte/icons/venetian-mask';
 	import { isToday } from 'date-fns';
 	import MessageAttachments from './MessageAttachments.svelte';
-	
+	import ProfileHoverCard from './modmail/profile-hover-card.svelte';
+
 	const {
 		message,
 		showUserProfile
@@ -38,6 +39,7 @@
 	<!-- User profile  -->
 	{#if showUserProfile}
 		<div class="flex items-baseline gap-2">
+			<ProfileHoverCard user={message.author}>
 			<div class="absolute left-8">
 				<Avatar.Root>
 					<Avatar.Image src={message.author.avatar_url} alt={message.author.name[0]} />
@@ -45,6 +47,7 @@
 				</Avatar.Root>
 			</div>
 			<span class="text-xl font-semibold">{message.author.name}</span>
+			</ProfileHoverCard>
 			<time datetime={message.timestamp.toISOString()}>
 				{messageDateFormatterLong.format(message.timestamp)}
 			</time>
@@ -67,6 +70,10 @@
 					<Badge variant="secondary">
 						<VenetianMask />{m.broad_active_pony_savor()}
 					</Badge>
+				{:else if message.type === 'note'}
+					<Badge variant="secondary">
+						<StickyNote /> Note
+					</Badge>
 				{/if}
 			</div>
 		</div>
@@ -79,7 +86,14 @@
 	{/if}
 	<div class="">
 		<div class="text-base">
-			<Markdown content={message.content} type="extended" />
+		{#if message.content.length === 0}
+			<span class="flex gap-1">		
+				<CircleQuestionMark />
+				<em class="text-muted-foreground">{m.round_teal_jan_bump()}</em>
+			</span>
+		{:else}
+		  	<Markdown content={message.content} type="extended" />
+		{/if}
 		</div>
 	</div>
 	{#if message.attachments}

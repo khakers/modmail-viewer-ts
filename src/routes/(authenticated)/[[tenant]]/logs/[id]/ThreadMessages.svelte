@@ -1,12 +1,10 @@
 <script lang="ts">
 	import DiscordMessage from '$lib/components/DiscordMessage.svelte';
-	import type { Message, ModmailThread, User } from '$lib/modmail';
-	import { m } from '$lib/paraglide/messages';
+	import type { Message, ModmailThread } from '$lib/modmail';
 	import { getLocale } from '$lib/paraglide/runtime';
 	import { clearSearchParams } from '$lib/searchParamUtils';
 	import { intlFormat, isAfter, isSameDay, subMinutes } from 'date-fns';
-	import Inspect from 'svelte-inspect-value';
-
+	
 	// thread isn't undefined in the load function but sveltekit is convinced it is now for some reason
 	const { thread }: { thread: ModmailThread } = $props();
 
