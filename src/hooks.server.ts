@@ -150,6 +150,7 @@ const handleAuthentication: Handle = async ({ event, resolve }) => {
 						: null,
 					guilds: guilds
 				};
+				event.locals.discordApiClient = discordApi;
 			} catch (e) {
 				// if type is OAuth2RequestError
 				if (e instanceof OAuth2RequestError) {
