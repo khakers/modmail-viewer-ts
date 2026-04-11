@@ -127,11 +127,9 @@
 					</Field.Set>
 					<Field.Field orientation="horizontal">
 						<Button type="submit">Submit</Button>
-						<Button variant="outline" type="button" onclick={() => (open = false)}
-							>
+						<Button variant="outline" type="button" onclick={() => (open = false)}>
 							Cancel
-							</Button
-						>
+						</Button>
 						<!-- <Spinner class="ms-auto" /> -->
 						{#if shareThread.pending}
 							<span>Creating share link...</span>

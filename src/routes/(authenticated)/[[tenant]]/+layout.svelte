@@ -2,16 +2,11 @@
 	import * as Breadcrumb from '$lib/components/ui/breadcrumb/index.js';
 	import { Separator } from '$lib/components/ui/separator/index.js';
 	import { m } from '$lib/paraglide/messages';
-	import { Button } from '$lib/components/ui/button';
-	import RefreshCcw from '@lucide/svelte/icons/refresh-ccw';
-	import { Skeleton } from '$lib/components/ui/skeleton';
-	import AppSidebar from '$lib/components/nav/app-sidebar.svelte';
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
 
 	import type { LayoutProps } from './$types';
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
-	import { invalidate } from '$app/navigation';
 
 	let { data, children }: LayoutProps = $props();
 </script>

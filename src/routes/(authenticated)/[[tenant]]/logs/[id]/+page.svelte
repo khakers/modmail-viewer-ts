@@ -1,37 +1,27 @@
 <script lang="ts">
 	import ThreadMessages from './ThreadMessages.svelte';
 
-	import DiscordMessage from '$lib/components/DiscordMessage.svelte';
 	import Markdown from '$lib/components/markdown/markdown.svelte';
 	import { Badge } from '$lib/components/ui/badge';
 	import { CopyButton } from '$lib/components/ui/copy-button';
 	import * as Tooltip from '$lib/components/ui/tooltip';
-	import * as Dialog from '$lib/components/ui/dialog/index.js';
-	import * as Table from '$lib/components/ui/table';
 	import UserAvatar from '$lib/components/user-avatar.svelte';
-	import type { Message, User } from '$lib/modmail';
+	import type { User } from '$lib/modmail';
 	import { m } from '$lib/paraglide/messages';
 	import { getLocale } from '$lib/paraglide/runtime';
 	import { clearSearchParams } from '$lib/searchParamUtils';
 	import {
 		CheckIcon,
 		CircleCheck,
-		CircleCheckIcon,
 		CircleDot,
-		CircleXIcon,
-		ShieldCheckIcon
-	} from '@lucide/svelte';
-	import { intlFormat, isAfter, isSameDay, subMinutes } from 'date-fns';
+		CircleXIcon	} from '@lucide/svelte';
 	import Inspect from 'svelte-inspect-value';
 	import type { PageData } from './$types';
-	import ShareForm from './ShareForm.svelte';
-	import { buttonVariants } from '$lib/components/ui/button';
-	import { encodeBase64UUID } from '$lib/uuid-utils';
-	import { Checkbox } from '$lib/components/ui/checkbox';
 	import ThreadShareForm from './thread-share-form.svelte';
 	import ThreadShareModal from './thread-share-modal.svelte';
 	import { getThread } from '../log.remote';
 	import { page } from '$app/state';
+	import { Spinner } from '$lib/components/ui/spinner';
 
 	// thread isn't undefined in the load function but sveltekit is convinced it is now for some reason
 	const { data }: { data: PageData } = $props();
@@ -39,6 +29,10 @@
 	const id = page.params.id;
 
 	const thread = $derived.by(async () => {
+		if (!id) {
+			// reject the promise to trigger the error state if there is no id
+			throw new Error('No thread id provided');
+		}
 		const thread = await getThread(id);
 		return {
 			...thread,
@@ -117,7 +111,6 @@
 					<!-- <ShareForm shareForm={data.shareForm} />  -->
 					<ThreadShareForm
 						threadId={thread._id}
-						currentUserId={data.user.discordUserId}
 					/>
 				</span>
 				<span class=" ms-8">
@@ -197,7 +190,10 @@
 		{/if}
 	{/await}
 	{#snippet pending()}
-		<p>loading...</p>
+	<div class="flex flex-row items-center gap-4 py-8">
+		<Spinner />
+		<p>{m.dull_giant_leopard_grow()}</p>
+	</div>
 	{/snippet}
 	{#snippet failed(error, reset)}
 		<button onclick={reset}>oops! try again</button>
