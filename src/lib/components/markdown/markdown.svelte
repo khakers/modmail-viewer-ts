@@ -20,7 +20,7 @@
 	import Link from './components/Link.svelte';
 	import List from './components/List.svelte';
 	import ListItem from './components/ListItem.svelte';
-
+	
 	let {
 		content,
 		type,
@@ -70,16 +70,7 @@
 
 	// the lexer stores state so must be crecreated every time we reparse the content
 	const ast = $derived.by(() => {
-		console.log(content);
 		return getMarked().lexer(content);
-
-		// return new Lexer({
-		// 	gfm: false,
-		// 	pedantic: false,
-		// 	extensions: {
-		// 		inline: [EmojiExtension.tokenizer, TwemojiExtension.tokenizer, TimestampExtension.tokenizer]
-		// 	}
-		// }).lex(content);
 	});
 
 	$effect(() => {
@@ -88,44 +79,35 @@
 		}
 	});
 
-	// $inspect(ast);
 
 	function getElement(type: string) {
 		const el = components[type] || Text;
-		// logger.trace({ type, el }, 'getElement');
 		return el;
 	}
 
-	// const parsed = $derived(parse(content, type));
+
 </script>
 
 {#snippet markdownNode(tokens: Tokens.Generic, Component: Component)}
 	<Component node={tokens}>
 		{#if tokens.tokens !== undefined}
+			<!-- eslint-disable-next-line svelte/require-each-key -->
 			{#each tokens.tokens as token}
 				{@render markdownNode(token, getElement(token.type))}
 			{/each}
 		{/if}
 	</Component>
-	<!-- <svelte:component this={renderers[tokens.type]} node={tokens}>
-		{#if tokens.tokens !== undefined}
-			{#each tokens.tokens as token}
-				{@render markdownNode(token)}
-			{/each}
-		{/if}
-	</svelte:component> -->
 {/snippet}
 
 <svelte:boundary>
 	<div class="whitespace-break-spaces text-pretty ">
+		<!-- eslint-disable-next-line svelte/require-each-key -->
 		{#each ast as e}
 			{@const Element = getElement(e.type)}
 			{@render markdownNode(e, Element)}
 		{/each}
 	</div>
 </svelte:boundary>
-
-<!-- <pre><code>{JSON.stringify(ast, null, 4)}</code></pre> -->
 
 <style>
 </style>

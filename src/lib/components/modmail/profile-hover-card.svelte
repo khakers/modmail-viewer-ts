@@ -2,7 +2,7 @@
 	import type { Snippet } from 'svelte';
 	import * as HoverCard from '$lib/components/ui/hover-card/index.js';
 	import type { User } from '$lib/modmail';
-	import { getThreadsForUser } from '../../../routes/(authenticated)/[[tenant]]/logs/log.remote';
+	import { getThreadsForUser } from '../../../routes/(authenticated)/[[tenant]]/logs/thread.remote';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import ThreadStatusBadge from './thread-status-badge.svelte';

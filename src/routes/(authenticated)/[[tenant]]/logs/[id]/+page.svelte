@@ -19,7 +19,7 @@
 	import type { PageData } from './$types';
 	import ThreadShareForm from './thread-share-form.svelte';
 	import ThreadShareModal from './thread-share-modal.svelte';
-	import { getThread } from '../log.remote';
+	import { getThread } from '../thread.remote';
 	import { page } from '$app/state';
 	import { Spinner } from '$lib/components/ui/spinner';
 

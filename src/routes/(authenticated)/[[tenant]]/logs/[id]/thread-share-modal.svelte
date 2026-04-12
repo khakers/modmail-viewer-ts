@@ -2,12 +2,11 @@
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import * as Table from '$lib/components/ui/table';
 	import { m } from '$lib/paraglide/messages';
-	import { CheckIcon, LoaderIcon, ShieldCheckIcon } from '@lucide/svelte';
+	import { CheckIcon, ShieldCheckIcon } from '@lucide/svelte';
 	import { buttonVariants } from '$lib/components/ui/button';
 	import { encodeBase64UUID } from '$lib/uuid-utils';
 	import { Checkbox } from '$lib/components/ui/checkbox';
 	import { getThreadShares } from './sharing.remote';
-	import { cn } from 'tailwind-variants';
 	import { isBefore } from 'date-fns';
 
 	let { threadId, currentUserId }: { threadId: string; currentUserId: string } = $props();
