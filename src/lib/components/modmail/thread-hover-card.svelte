@@ -6,8 +6,6 @@
 	import type { Snippet } from 'svelte';
 
 	let { children, thread }: { children: Snippet; thread: ModmailThread & { message_count?: number } } = $props();
-
-	console.log(thread);
 </script>
 
 <HoverCard.Root>
