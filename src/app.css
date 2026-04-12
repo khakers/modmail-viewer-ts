@@ -37,6 +37,25 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+
+  /* Highlight.js Google Light theme */
+
+  --highlightjs-base00: #ffffff; /* Default Background */
+  --highlightjs-base01: #e0e0e0; /* Lighter Background */
+  --highlightjs-base02: #c5c8c6; /* Selection Background */
+  --highlightjs-base03: #b4b7b4; /* Comments, Invisibles, Line Highlighting */
+  --highlightjs-base04: #969896; /* Dark Foreground */
+  --highlightjs-base05: #373b41; /* Default Foreground */
+  --highlightjs-base06: #282a2e;/* Light Foreground */
+  --highlightjs-base07: #1d1f21;/* Light Background */
+  --highlightjs-base08: #CC342B; /* Variables, XML Tags */
+  --highlightjs-base09: #F96A38; /* Integers, Constants */
+  --highlightjs-base0A: #FBA922; /* Classes, Bold Text */
+  --highlightjs-base0B: #198844; /* Strings, Markup Code */
+  --highlightjs-base0C: #3971ED; /* Support, Escape Characters */
+  --highlightjs-base0D: #3971ED; /* Functions, Methods */
+  --highlightjs-base0E: #A36AC7; /* Keywords, Selectors */
+  --highlightjs-base0F: #3971ED; /* Deprecated, Embedded Tags */
 }
 
 .dark {
@@ -70,7 +89,27 @@
   --sidebar-accent: oklch(0.269 0 0);
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);}
+  --sidebar-ring: oklch(0.556 0 0);
+
+  /* Highlight.js Google Dark theme */
+
+  --highlightjs-base00: #1d1f21; /* Default Background */
+  --highlightjs-base01: #282a2e; /* Lighter Background */
+  --highlightjs-base02: #373b41; /* Selection Background */
+  --highlightjs-base03: #969896; /* Comments, Invisibles, Line Highlighting */
+  --highlightjs-base04: #b4b7b4; /* Dark Foreground */
+  --highlightjs-base05: #c5c8c6; /* Default Foreground */
+  --highlightjs-base06: #e0e0e0;/* Light Foreground */
+  --highlightjs-base07: #ffffff;/* Light Background */
+  --highlightjs-base08: #CC342B; /* Variables, XML Tags */
+  --highlightjs-base09: #F96A38; /* Integers, Constants */
+  --highlightjs-base0A: #FBA922; /* Classes, Bold Text */
+  --highlightjs-base0B: #198844; /* Strings, Markup Code */
+  --highlightjs-base0C: #3971ED; /* Support, Escape Characters */
+  --highlightjs-base0D: #3971ED; /* Functions, Methods */
+  --highlightjs-base0E: #A36AC7; /* Keywords, Selectors */
+  --highlightjs-base0F: #3971ED; /* Deprecated, Embedded Tags */
+}
 
 @theme inline {
   /* Radius (for rounded-*) */
