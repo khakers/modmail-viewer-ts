@@ -5,6 +5,7 @@ import { defineConfig } from 'vite';
 import dotenv from 'dotenv';
 import tailwindcss from '@tailwindcss/vite'
 import devtoolsJson from 'vite-plugin-devtools-json';
+import fs from 'fs';
 
 
 
@@ -21,8 +22,13 @@ export default defineConfig({
 				'**docker-compose.yml',
 				'*.db',
 				'**/bruno/**',
-				'*.md'
+				'*.md',
+				'**/*.md'
 			]
+		},
+		https: {
+			key: fs.readFileSync('./dev/certificates/localhost-key.pem'),
+			cert: fs.readFileSync('./dev/certificates/localhost.pem')
 		}
 	},
 	// I had to do this to get process.env to have variables because I can't import svelte env in schema.ts

@@ -6,10 +6,15 @@
 	import { buttonVariants } from '$lib/components/ui/button';
 	import { encodeBase64UUID } from '$lib/uuid-utils';
 	import { Checkbox } from '$lib/components/ui/checkbox';
-	import { getThreadShares } from './sharing.remote';
+	import { disableThreadShare, getThreadShares } from './sharing.remote';
 	import { isBefore } from 'date-fns';
 
 	let { threadId, currentUserId }: { threadId: string; currentUserId: string } = $props();
+
+	const canDisableShares = $derived.by(async () => {
+		const shares = await getThreadShares(threadId);
+		return shares.some((share) => share.creatorDiscordUserId === currentUserId);
+	});
 </script>
 
 <svelte:boundary>
@@ -49,7 +54,15 @@
 										checked={share.enabled &&
 											(!share.expiresAt ||
 												isBefore(new Date(), share.expiresAt))}
-										disabled={true}
+										disabled={share.creatorDiscordUserId !== currentUserId}
+										onclick={async (event) => {
+											try {
+												event.preventDefault();
+												disableThreadShare({id: share.id, enabled: !share.enabled});
+											} catch (error) {
+												console.error('Error toggling share', error);
+											}
+										}}
 									/>
 								</Table.Cell>
 								<Table.Cell>

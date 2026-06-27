@@ -9,7 +9,7 @@
 	
 	$inspect(data);
 	const avatar = $derived(
-		data.user.avatar !== undefined
+		data.user && data.user.avatar !== undefined
 			? data.user.avatar
 			: `https://cdn.discordapp.com/embed/avatars/${(Number.parseInt(data.user.discordUserId) >> 22) % 6}.png`
 	);

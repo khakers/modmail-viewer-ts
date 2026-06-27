@@ -11,8 +11,12 @@
 	<p>{page.error?.message}</p>
 	{#if page.error?.requestId}
 		<h3 class="text-xl">{m.icy_yummy_panther_explore()}</h3>
-		<span><code class="font-mono">{page.error?.requestId}</code></span>
-		{:else}
+		<span class="m-2">
+			<code class="bg-muted rounded-md p-1.5 font-mono select-all"
+				>{page.error?.requestId}
+			</code>
+		</span>
+	{:else}
 		<h3>{m.plain_slimy_tern_bless()}</h3>
 	{/if}
 </div>

@@ -15,7 +15,7 @@ The slug is the field used in the URL to access resources belonging to that tena
 For example, in `logs.example.com/tenant/logs` the tenant slug is `tenant`.
 
 > [!NOTE]
-> Tenant schema is not final. 
+> Tenant schema is not final.
 
 ```json
 [
@@ -37,6 +37,9 @@ For example, in `logs.example.com/tenant/logs` the tenant slug is `tenant`.
 Support for Multi-Tenancy means you can have log viewing for as many modmail bots as you want with only one server.
 Authentication is shared by all users of the app, but a user can only view a modmail instance they have the correct permissions for.
 Tenants are determined by the tenant slug right before the '/log' portion of the url, and configured in the tenant JSON file.
+
+If you don't specify a tenant in the URL, the server will attempt to guess which tenant the user might be looking for on a best effort basis. IT does this by looking at the discord servers the user is in and returning the first tenant found that the user is in. Permissions are not checked at this step so its possible for the user to get an unauthorized error from this.
+This feature is intended only for users in a single tenant.
 
 ## Environment variables
 
@@ -70,11 +73,23 @@ pnpm run dev
 pnpm run dev -- --open
 ```
 
+### HTTP/2 & TLS
+
+Vite is set to use a local certificate set in ./dev/certificates/
+Use mkcert or a tool of your choice to generate these certificates.
+
+```
+./dev/certificates/localhost-key.pem
+./dev/certificates/localhost.pem
+```
+
+
 ### Logging
 
 Documentation of Pino footguns
 
 To properly log errors, you must name the error object err. It isn't serialized otherwise
+
 ```ts
 logger.error({err: e}, "Error message");
 // or
@@ -82,6 +97,7 @@ logger.error({err}, "Error message");
 ```
 
 Do not reverse the order of the arguments, as this does an entirely different type of operation and will fail to do what you actually want.
+
 ```ts
 logger.error("Error message", {err: e}); // This will not work as expected or at all
 ```
@@ -105,3 +121,9 @@ pnpm db:generate
 ```
 
 You can push schema changes to a local database with `db:push`
+
+## Implementation details
+
+### Markdown
+
+The project uses marked.js for markdown parsing. Instead of using a marked renderer, we implement our own in svelte using snippets. The tokenizer has been slightly modified from whats present in Marked to better reflect discord markdown and our needs. You can finder the tokenizer in marked.ts and the markdown implementation in markdown.svelte.

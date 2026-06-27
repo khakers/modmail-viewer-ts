@@ -1,12 +1,10 @@
-
 export type User = {
-    avatar_url: string,
-    discriminator: string,
-    id: string,
-    mod: boolean,
-    name: string,
-
-}
+	avatar_url: string;
+	discriminator: string;
+	id: string;
+	mod: boolean;
+	name: string;
+};
 /*
 {
           "id": {
@@ -19,14 +17,14 @@ export type User = {
           "content_type": "image/png"
         }
 */
-interface Attachment  {
-    id: number
-    content_type?: string,
-    filename: string,
-    // This value is wrong on non openmodmail type attachments
-    is_image: boolean,
-    url: string,
-    size?: number,
+interface Attachment {
+	id: number;
+	content_type?: string;
+	filename: string;
+	// This value is wrong on non openmodmail type attachments
+	is_image: boolean;
+	url: string;
+	size?: number;
 }
 /*
 {
@@ -46,48 +44,55 @@ interface Attachment  {
                 }
 */
 interface OpenModmailAttachment extends Attachment {
-    content_type: string,
-    type: "openmodmail_s3",
-    s3: {
-        bucket: string,
-        object: string
-    },
-    description: string | null,
-    size: number,
-    uploaded_at: date,
-    width: number | null,
-    height: number | null,
+	content_type: string;
+	type: 'openmodmail_discord_v1';
+
+	description: string | null;
+	size: number;
+	uploaded_at: date;
+	width: number | null;
+	height: number | null;
+}
+
+interface OpenModmailS3Attachment extends Attachment {
+	type: 'openmodmail_s3_v1';
+	s3: {
+		archived: boolean;
+		bucket: string;
+		key: string;
+		archived_at: Date;
+	};
 }
 
 export type Message = {
-    author: User,
-    attachments: Attachment[] | OpenModmailAttachment[] | null,
-    content: string,
-    edited?: boolean,
-    message_id: string,
-    timestamp: string,
-    type: "thread_message" | "system" | "internal" | "anonymous" | "note",
-    nfsw?: boolean,
-    open: boolean,
-    recipient: User,
-    title?: string | null
-}
+	author: User;
+	attachments: Attachment[] | OpenModmailAttachment[] | null;
+	content: string;
+	edited?: boolean;
+	message_id: string;
+	timestamp: string;
+	type: 'thread_message' | 'system' | 'internal' | 'anonymous' | 'note';
+	nfsw?: boolean;
+	open: boolean;
+	recipient: User;
+	title?: string | null;
+};
 
 export type ModmailThread = {
-    _id: string,
-    bot_id: string,
-    channel_id: string,
-    close_message?: string | null,
-    closed_at?: string | null,
-    created_at: string,
-    closer?: User | null,
-    creator: User,
-    recipient: User,
-    dm_channel_id?: string | null | undefined,
-    guild_id: string,
-    key: string,
-    messages: Message[],
-    open: boolean,
-    nfsw: boolean,
-    title: string | null
-}
+	_id: string;
+	bot_id: string;
+	channel_id: string;
+	close_message?: string | null;
+	closed_at?: string | null;
+	created_at: string;
+	closer?: User | null;
+	creator: User;
+	recipient: User;
+	dm_channel_id?: string | null | undefined;
+	guild_id: string;
+	key: string;
+	messages: Message[];
+	open: boolean;
+	nfsw: boolean;
+	title: string | null;
+};

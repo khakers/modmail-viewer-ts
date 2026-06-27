@@ -60,7 +60,7 @@ export type Session = typeof session.$inferSelect;
 
 export const sharedThreads = sqliteTable('shared_threads', {
 	id: text('uuid').primaryKey().$defaultFn(() => crypto.randomUUID()),
-	threadId: text('thread_id'),
+	threadId: text('thread_id').notNull(),
 	tenantId: text('tenant_id').notNull(),
 	creatorDiscordUserId: text('creator_discord_user_id')
 		.notNull(),
