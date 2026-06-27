@@ -161,10 +161,14 @@ const handleAuthentication: Handle = async ({ event, resolve }) => {
 					event.cookies.delete(auth.sessionCookieName, { path: '/' });
 
 					// return redirect to login page with error message
+					let redirectUrl = '/auth/login?error=discord_oauth_error';
+					if (event.locals.requestId) {
+						redirectUrl += '&context=' + encodeURIComponent(event.locals.requestId);
+					}
 					return new Response(null, {
 						status: 307,
 						headers: {
-							'Location': '/auth/login?error=discord_oauth_error',
+							'Location': redirectUrl,
 							'Set-Cookie': `${auth.sessionCookieName}=; Path=/; Max-Age=0`
 						}
 					});

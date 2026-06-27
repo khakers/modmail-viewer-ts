@@ -6,6 +6,7 @@
 	import { ShareIcon } from '@lucide/svelte';
 
 	import { shareThread } from './sharing.remote';
+	import { Spinner } from '$lib/components/ui/spinner';
 	
 	let { threadId }: { threadId: string } = $props();
 
@@ -132,7 +133,7 @@
 						</Button>
 						<!-- <Spinner class="ms-auto" /> -->
 						{#if shareThread.pending}
-							<span>Creating share link...</span>
+							<span class="flex flex-row"><Spinner />Creating share link...</span>
 						{/if}
 					</Field.Field>
 				</Field.Group>

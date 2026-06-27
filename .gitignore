@@ -33,3 +33,5 @@ src/lib/paraglide
 tenants.json
 
 .idea/
+
+*.pem

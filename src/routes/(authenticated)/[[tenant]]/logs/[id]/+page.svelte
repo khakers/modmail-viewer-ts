@@ -22,6 +22,7 @@
 	import { getThread } from '../thread.remote';
 	import { page } from '$app/state';
 	import { Spinner } from '$lib/components/ui/spinner';
+	import ThreadStatusBadge from '$lib/components/modmail/thread-status-badge.svelte';
 
 	// thread isn't undefined in the load function but sveltekit is convinced it is now for some reason
 	const { data }: { data: PageData } = $props();
@@ -123,19 +124,7 @@
 			{#if thread.title}
 				<h2 class="text-xl">{thread.title}</h2>
 			{/if}
-			{#if thread.open}
-				<Badge style={`view-transition-name: log-${thread._id}-badge;`}>
-					<CircleDot class="me-1 h-4" />{m.deft_wild_platypus_peel()}
-				</Badge>
-			{:else}
-				<Badge
-					variant="destructive"
-					style={`view-transition-name: log-${thread._id}-badge;`}
-				>
-					<CircleCheck class="me-1 h-4" />
-					{m.zippy_pretty_martin_radiate()}
-				</Badge>
-			{/if}
+			<ThreadStatusBadge {thread} transitionId={thread._id ?? id} />
 			{#if thread.nfsw}
 				<Badge variant="destructive" class="ml-2">{m.sea_mellow_marmot_inspire()}</Badge>
 			{/if}

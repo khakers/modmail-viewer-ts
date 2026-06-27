@@ -1,4 +1,4 @@
-import { form, getRequestEvent, query } from '$app/server';
+import { command, form, getRequestEvent, query } from '$app/server';
 import { db } from '$lib/server/db';
 import { z } from 'zod/v4';
 import { sharedThreads } from '$lib/server/db/schema';
@@ -143,3 +143,26 @@ export const shareThread = form(
 		json({ success: true, shareId: encodeBase64UUID(id), form: data });
 	}
 );
+
+export const disableThreadShare = command(z.object({ id: z.uuidv4(), enabled: z.boolean() }), async (data) => {
+	logger.trace({ data }, 'disableThreadShare called');
+	const thread = await db.select().from(sharedThreads).where(eq(sharedThreads.id, data.id)).limit(1);
+	if (thread.length === 0) {
+		logger.error({ id: data.id }, "disableThreadShare could not find share in database")
+		error(404, 'Share not found');
+	}
+	// The creator of a thread can always disable it, otherwise we do a permission check
+	if (thread[0].creatorDiscordUserId !== getRequestEvent().locals.user.discordUserId) {
+		await permissionGuard('MODERATOR');
+	}
+	const res = await db
+		.update(sharedThreads)
+		.set({ enabled: data.enabled })
+		.where(eq(sharedThreads.id, data.id));
+	if (res.changes === 0) {
+		logger.error({ res, id: data.id }, "disableThreadShare mongodb update returned 0 changes")
+		error(404, 'Share not found');
+	}
+
+	getThreadShares(thread[0].threadId).refresh(); // prefetch updated shares
+});

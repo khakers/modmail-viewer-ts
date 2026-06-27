@@ -12,6 +12,11 @@
 	let { children, user }: { children: Snippet; user: User } = $props();
 
 	const id = $props.id();
+
+	const currentThreadId = $derived.by(() => {
+		const threadId = page.params.id;
+		return typeof threadId === 'string' ? threadId : null;
+	});
 </script>
 
 <HoverCard.Root>
@@ -30,17 +35,32 @@
 					{#each await getThreadsForUser(user.id) as thread (thread._id)}
 						<li class="grid grid-cols-[minmax(0,1fr)_max-content] items-center">
 							<ThreadHoverCard {thread}>
-								<a
-									href={resolve(`/(authenticated)/[[tenant]]/logs/[id]`, {
-										id: thread._id,
-										tenant: page.params.tenant
-									})}
-									class="font-mono uppercase"
-								>
-									{thread.key}
-								</a>
+								{#if thread._id === currentThreadId}
+									<span class="font-mono uppercase">
+										{thread.key}
+									</span>
+								{:else}
+									<a
+										href={resolve(`/(authenticated)/[[tenant]]/logs/[id]`, {
+											id: thread._id,
+											tenant: page.params.tenant
+										})}
+										class="font-mono uppercase"
+									>
+										{thread.key}
+									</a>
+								{/if}
 							</ThreadHoverCard>
-							<ThreadStatusBadge {thread} transitionId={thread._id ?? id} />
+							{#if thread._id === currentThreadId}
+								<span
+									class="text-green-500"
+									aria-label="Currently viewing this thread"
+								>
+									●
+								</span>
+							{:else}
+								<ThreadStatusBadge {thread} transitionId={thread._id ?? id} />
+							{/if}
 						</li>
 					{/each}
 				</ul>
