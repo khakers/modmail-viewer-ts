@@ -1,11 +1,11 @@
-import { formatISO, parse, parseISO } from 'date-fns';
-import {z} from 'zod';
+import { formatISO, parseISO } from 'date-fns';
+import { z } from 'zod';
 
 export const isoDateStringToDate = z.codec(
-    z.iso.date(),
-    z.date(),
-    {
-        decode: (isoString) => parseISO(isoString),
-        encode: (date) => formatISO(date, { representation: 'date' })
-    }
-)
+	z.union([z.iso.date(), z.literal('')]).optional(),
+	z.date().optional(),
+	{
+		decode: (isoString) => (isoString && isoString !== '' ? parseISO(isoString) : undefined),
+		encode: (date) => (date ? formatISO(date, { representation: 'date' }) : undefined)
+	}
+);

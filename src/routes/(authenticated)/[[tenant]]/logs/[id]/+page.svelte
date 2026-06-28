@@ -12,8 +12,6 @@
 	import { clearSearchParams } from '$lib/searchParamUtils';
 	import {
 		CheckIcon,
-		CircleCheck,
-		CircleDot,
 		CircleXIcon	} from '@lucide/svelte';
 	import Inspect from 'svelte-inspect-value';
 	import type { PageData } from './$types';

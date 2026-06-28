@@ -52,16 +52,23 @@ export const getThreadShares = query(z.string(), async (threadId) => {
 	return await db.select().from(sharedThreads).where(eq(sharedThreads.threadId, threadId));
 });
 
+// Previously zod allowed one to use z.coerce.boolean<boolean>(), but 4.4 changed this behavior so transform is used instead
+// https://github.com/sveltejs/kit/issues/15785
+const formBoolean = z
+	.boolean()
+	.optional()
+	.transform((v) => v ?? false);
+
 export const shareThread = form(
 	z.object({
 		id: z.string(),
-		requireAuthentication: z.coerce.boolean<boolean>(),
-		showInternalMessages: z.coerce.boolean<boolean>(),
-		showAnonymousSenderName: z.coerce.boolean<boolean>(),
-		showSystemMessages: z.coerce.boolean<boolean>(),
+		requireAuthentication: formBoolean,
+		showInternalMessages: formBoolean,
+		showAnonymousSenderName: formBoolean,
+		showSystemMessages: formBoolean,
 		expiresAt: isoDateStringToDate
 			.refine(
-				(date) => date === null || isAfter(date, new Date()),
+				(date) => (date === null || date === undefined) || isAfter(date, new Date()),
 				'Expiration must be in the future'
 			)
 			.optional()
@@ -140,7 +147,7 @@ export const shareThread = form(
 
 		getThreadShares(data.id).refresh(); // prefetch updated shares
 
-		json({ success: true, shareId: encodeBase64UUID(id), form: data });
+		return { success: true, shareId: encodeBase64UUID(id), form: data };
 	}
 );
 

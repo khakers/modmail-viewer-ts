@@ -7,7 +7,9 @@
 
 	import { shareThread } from './sharing.remote';
 	import { Spinner } from '$lib/components/ui/spinner';
-	
+	import { Snippet } from '$lib/components/ui/snippet';
+	import { resolve } from '$app/paths';
+
 	let { threadId }: { threadId: string } = $props();
 
 	let open = $state(false);
@@ -28,14 +30,13 @@
 	<Popover.Content class="w-96">
 		<div class="max-h-175 overflow-y-auto">
 			<form
-				{...shareThread.enhance(async ({ form, data, submit }) => {
+				{...shareThread.enhance(async (form) => {
 					try {
-						// TODO remove debug
-						// surface errors to the user
+						console.debug(form.fields.value());
 						console.debug('Submitting share thread form');
-						console.debug(data);
-						await submit();
-						form.reset();
+						if (await form.submit()) {
+							form.element.reset();
+						}
 					} catch (error) {
 						console.error('Error submitting share thread form', error);
 					}
@@ -128,16 +129,30 @@
 					</Field.Set>
 					<Field.Field orientation="horizontal">
 						<Button type="submit">Submit</Button>
-						<Button variant="outline" type="button" onclick={() => (open = false)}>
+						<Button
+							variant="outline"
+							type="button"
+							onclick={() => {
+								open = false;
+								shareThread.element?.reset();
+							}}
+						>
 							Cancel
 						</Button>
-						<!-- <Spinner class="ms-auto" /> -->
 						{#if shareThread.pending}
 							<span class="flex flex-row"><Spinner />Creating share link...</span>
 						{/if}
 					</Field.Field>
 				</Field.Group>
 			</form>
+			{#if shareThread.result?.success}
+				<div class="mt-4">
+					<Snippet
+						text={window.location.origin +
+							resolve('/share/[id]', { id: shareThread.result.shareId })}
+					/>
+				</div>
+			{/if}
 		</div>
 	</Popover.Content>
 </Popover.Root>
