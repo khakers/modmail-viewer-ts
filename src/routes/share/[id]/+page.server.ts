@@ -9,63 +9,67 @@ import { isAfter } from 'date-fns';
 import type { PageServerLoad } from './$types';
 
 export const load = (async ({ params, locals }) => {
-    const id: string = decodeBase64UUID(params.id);
+	const id: string = decodeBase64UUID(params.id);
 
-    const shareSettings = await getSharedThread(id);
-    if (!shareSettings) {
-        error(404, "not found");
-    }
-    if (shareSettings.requireAuthentication !== false) {
-        if (!locals.session) {
-            error(401, 'authentication required');
-        }
-    }
-    if (shareSettings.expiresAt && isAfter(new Date(), shareSettings.expiresAt)) {
-        // logger.debug("")
-        error(404, "not found");
-    }
+	const shareSettings = await getSharedThread(id);
+	if (!shareSettings || !shareSettings.enabled) {
+		error(404, 'not found');
+	}
+	if (shareSettings.requireAuthentication !== false) {
+		if (!locals.session) {
+			error(401, 'authentication required');
+		}
+	}
+	if (shareSettings.expiresAt && isAfter(new Date(), shareSettings.expiresAt)) {
+		// logger.debug("")
+		error(404, 'not found');
+	}
 
-    const client = getMongodbClientFromId(shareSettings.tenantId)
+	const client = getMongodbClientFromId(shareSettings.tenantId);
 
-    if (!client) {
-        logger.error({ shareId: id, shareSettings }, "no mongodb client was found for the tenant ID this shared thread had stored. Have tenant IDs changed?")
-        error(500, "failed to retrieve thread")
-    }
+	if (!client) {
+		logger.error(
+			{ shareId: id, shareSettings },
+			'no mongodb client was found for the tenant ID this shared thread had stored. Have tenant IDs changed?'
+		);
+		error(500, 'failed to retrieve thread');
+	}
 
-    const modmailThread = await client.db()
-        .collection('logs')
-        .findOne<ModmailThread>({ _id: shareSettings.threadId });
+	const modmailThread = await client
+		.db()
+		.collection('logs')
+		.findOne<ModmailThread>({ _id: shareSettings.threadId });
 
-    if (!modmailThread) {
-        logger.debug(params.id, 'Document not found');
-        error(404, 'Not Found');
-    }
+	if (!modmailThread) {
+		logger.debug({ shareId: id, params: { id: params.id } }, 'Document not found');
+		error(404, 'Not Found');
+	}
 
-    let thread = convertBSONtoJS(modmailThread) as ModmailThread;
+	const thread = convertBSONtoJS(modmailThread) as ModmailThread;
 
-    if (shareSettings.showAnonymousSenderName !== true) {
-        thread.messages.forEach((message) => {
-            if (message.type === 'anonymous') {
-                message.author = {
-                    avatar_url: "",
-                    discriminator: "0",
-                    id: "0",
-                    mod: true,
-                    name: "anonymous"
-                }
-            }
-        })
-    }
+	if (shareSettings.showAnonymousSenderName !== true) {
+		thread.messages.forEach((message) => {
+			if (message.type === 'anonymous') {
+				message.author = {
+					avatar_url: '',
+					discriminator: '0',
+					id: '0',
+					mod: true,
+					name: 'anonymous'
+				};
+			}
+		});
+	}
 
-    if (shareSettings.showInternalMessages !== true) {
-        thread.messages = thread.messages.filter((m) => m.type !== 'internal')
-    }
+	if (shareSettings.showInternalMessages !== true) {
+		thread.messages = thread.messages.filter((m) => m.type !== 'internal');
+	}
 
-    if (shareSettings.showSystemMessages !== true) {
-        thread.messages = thread.messages.filter((m) => m.type !== 'system')
-    }
+	if (shareSettings.showSystemMessages !== true) {
+		thread.messages = thread.messages.filter((m) => m.type !== 'system');
+	}
 
-    return {
-        thread: thread
-    };
+	return {
+		thread: thread
+	};
 }) satisfies PageServerLoad;

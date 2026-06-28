@@ -15,7 +15,7 @@ function guard() {
 	const req = getRequestEvent();
 	if (!req.locals.Tenant) {
 		logger.error('Tenant parameter is missing');
-		error(404, 'No tenant found', req);
+		error(401, 'No tenant found', req);
 	}
 	const client = req.locals.Tenant.mongoThreadCollection;
 

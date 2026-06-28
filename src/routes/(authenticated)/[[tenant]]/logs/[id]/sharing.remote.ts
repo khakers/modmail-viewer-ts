@@ -18,7 +18,7 @@ async function permissionGuard(requiredLevel: PermissionLevel): Promise<void> {
 
 	if (!req.locals.Tenant) {
 		logger.error('Tenant parameter is missing');
-		error(404, 'No tenant found', req);
+		error(401, 'No tenant found', req);
 	}
 
 	if (!req.locals.discordApiClient) {
@@ -167,7 +167,7 @@ export const disableThreadShare = command(z.object({ id: z.uuidv4(), enabled: z.
 		.set({ enabled: data.enabled })
 		.where(eq(sharedThreads.id, data.id));
 	if (res.changes === 0) {
-		logger.error({ res, id: data.id }, "disableThreadShare mongodb update returned 0 changes")
+		logger.error({ res, id: data.id }, "disableThreadShare update returned 0 changes")
 		error(404, 'Share not found');
 	}
 

@@ -32,7 +32,7 @@
 				<Table.Caption>{m.gross_muddy_peacock_attend()}</Table.Caption>
 				<Table.Header>
 					<Table.Row>
-						<Table.Head class="w-[100px]">{m.fun_clear_gibbon_bake()}</Table.Head>
+						<Table.Head class="w-25">{m.fun_clear_gibbon_bake()}</Table.Head>
 						<Table.Head>{m.many_smart_jackal_twist()}</Table.Head>
 						<Table.Head>{m.low_helpful_barbel_sprout()}</Table.Head>
 						<Table.Head>{m.direct_yummy_ox_quell()}</Table.Head>
