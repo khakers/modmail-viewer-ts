@@ -5,10 +5,11 @@
 	import { useSidebar } from '$lib/components/ui/sidebar/index.js';
 	import ChevronsUpDown from '@lucide/svelte/icons/chevrons-up-down';
 	import LogOut from '@lucide/svelte/icons/log-out';
-	import Github from '@lucide/svelte/icons/github';
 	import { enhance } from '$app/forms';
 	import Settings from '@lucide/svelte/icons/settings';
 	import { m } from '$lib/paraglide/messages';
+	import { resolve } from '$app/paths';
+	import { Code } from '@lucide/svelte';
 
 	let {
 		user
@@ -64,27 +65,8 @@
 				<DropdownMenu.Separator />
 				<DropdownMenu.Group>
 					<DropdownMenu.Item>
-
 						<a
-						href="/user"
-						referrerpolicy="strict-origin"
-						target="_blank"
-						class="flex flex-1"
-					>
-						<span
-							class="relative flex cursor-pointer select-none items-center gap-2 outline-hidden transition-colors data-disabled:pointer-events-none data-highlighted:bg-accent data-highlighted:text-accent-foreground data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0"
-						>
-						<Settings />
-						{m.this_cuddly_kitten_wish()}						</span>
-					</a>
-					</DropdownMenu.Item>
-				</DropdownMenu.Group>
-
-				<DropdownMenu.Separator />
-				<DropdownMenu.Group>
-					<DropdownMenu.Item>
-						<a
-							href="https://github.com/khakers/modmail-viewer"
+							href={resolve('/user')}
 							referrerpolicy="strict-origin"
 							target="_blank"
 							class="flex flex-1"
@@ -92,7 +74,26 @@
 							<span
 								class="relative flex cursor-pointer select-none items-center gap-2 outline-hidden transition-colors data-disabled:pointer-events-none data-highlighted:bg-accent data-highlighted:text-accent-foreground data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0"
 							>
-								<Github />
+								<Settings />
+								{m.this_cuddly_kitten_wish()}
+							</span>
+						</a>
+					</DropdownMenu.Item>
+				</DropdownMenu.Group>
+
+				<DropdownMenu.Separator />
+				<DropdownMenu.Group>
+					<DropdownMenu.Item>
+						<a
+							href="https://github.com/khakers/modmail-viewer-ts"
+							referrerpolicy="strict-origin"
+							target="_blank"
+							class="flex flex-1"
+						>
+							<span
+								class="relative flex cursor-pointer select-none items-center gap-2 outline-hidden transition-colors data-disabled:pointer-events-none data-highlighted:bg-accent data-highlighted:text-accent-foreground data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0"
+							>
+								<Code />
 								{m.calm_glad_tuna_explore()}
 							</span>
 						</a>

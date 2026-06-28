@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 import tailwindcss from '@tailwindcss/vite'
 import devtoolsJson from 'vite-plugin-devtools-json';
 import fs from 'fs';
+import lucidePreprocess from 'vite-plugin-lucide-preprocess';
 
 
 
@@ -14,7 +15,7 @@ export default defineConfig({
 		target: "esnext",
 		sourcemap: true
 	},
-	optimizeDeps: { esbuildOptions: { target: "esnext" } },
+	optimizeDeps: {},
 	server: {
 		watch: {
 			ignored: [
@@ -39,6 +40,7 @@ export default defineConfig({
 		return result;
 	})(),
 	plugins: [
+		lucidePreprocess(),
 		tailwindcss(),
 		devtoolsJson(),
 		sveltekit(),
