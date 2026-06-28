@@ -5,6 +5,7 @@
 	let { children, node }: { children: Snippet; node: Tokens.Link } = $props();
 </script>
 
+<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
 <a href={node.href} class="text-blue-400 hover:underline" target="_blank" rel="noopener noreferrer">
 	{@render children()}
 </a>

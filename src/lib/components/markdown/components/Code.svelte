@@ -5,7 +5,6 @@
 
 	let { node }: { node: Tokens.Code } = $props();
 
-
 	const highlighted = $derived(
 		node.lang !== undefined && node.lang !== ''
 			? hljs.highlight(node.text, { language: node.lang })
@@ -15,10 +14,11 @@
 	// TODO choose more accurate themes or create a custom theme
 </script>
 
-<pre class="rounded-lg border bg-primary-foreground ps-2">
-	<code>{@html highlighted.value}</code>
-</pre>
+<!-- the formatting is required for the element to display properly and for the eslint disable to work -->
+<!-- prettier-ignore-start -->
+<!-- eslint-disable-next-line svelte/no-at-html-tags -->
+<pre class="rounded-lg border bg-primary-foreground ps-2"><code>{@html highlighted.value}</code></pre>
+<!-- prettier-ignore-end -->
 
 <style>
-	
 </style>

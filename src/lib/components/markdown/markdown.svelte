@@ -20,7 +20,7 @@
 	import Link from './components/Link.svelte';
 	import List from './components/List.svelte';
 	import ListItem from './components/ListItem.svelte';
-	
+
 	let {
 		content,
 		type,
@@ -79,13 +79,10 @@
 		}
 	});
 
-
 	function getElement(type: string) {
 		const el = components[type] || Text;
 		return el;
 	}
-
-
 </script>
 
 {#snippet markdownNode(tokens: Tokens.Generic, Component: Component)}
@@ -95,12 +92,17 @@
 			{#each tokens.tokens as token}
 				{@render markdownNode(token, getElement(token.type))}
 			{/each}
+		{:else if tokens.items !== undefined}
+			<!-- eslint-disable-next-line svelte/require-each-key -->
+			{#each tokens.items as item}
+				{@render markdownNode(item, getElement(item.type))}
+			{/each}
 		{/if}
 	</Component>
 {/snippet}
 
 <svelte:boundary>
-	<div class="whitespace-break-spaces text-pretty ">
+	<div class="whitespace-break-spaces text-pretty">
 		<!-- eslint-disable-next-line svelte/require-each-key -->
 		{#each ast as e}
 			{@const Element = getElement(e.type)}
