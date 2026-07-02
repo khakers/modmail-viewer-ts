@@ -1,18 +1,17 @@
+/// <reference types="vitest/config" />
 import { paraglideVitePlugin } from '@inlang/paraglide-js';
 import { svelteTesting } from '@testing-library/svelte/vite';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
 import dotenv from 'dotenv';
-import tailwindcss from '@tailwindcss/vite'
+import tailwindcss from '@tailwindcss/vite';
 import devtoolsJson from 'vite-plugin-devtools-json';
 import fs from 'fs';
 import lucidePreprocess from 'vite-plugin-lucide-preprocess';
 
-
-
 export default defineConfig({
 	build: {
-		target: "esnext",
+		target: 'esnext',
 		sourcemap: true
 	},
 	optimizeDeps: {},
@@ -27,10 +26,16 @@ export default defineConfig({
 				'**/*.md'
 			]
 		},
-		https: {
-			key: fs.readFileSync('./dev/certificates/localhost-key.pem'),
-			cert: fs.readFileSync('./dev/certificates/localhost.pem')
-		}
+		https: (() => {
+			const keyPath = process.env.HTTPS_KEY_PATH;
+			const certPath = process.env.HTTPS_CERT_PATH;
+			if (keyPath && certPath) {
+				return {
+					key: fs.readFileSync(keyPath),
+					cert: fs.readFileSync(certPath)
+				};
+			}
+		})(),
 	},
 	// I had to do this to get process.env to have variables because I can't import svelte env in schema.ts
 	define: (() => {
@@ -51,7 +56,7 @@ export default defineConfig({
 		})
 	],
 	test: {
-		workspace: [
+		projects: [
 			{
 				extends: './vite.config.ts',
 				plugins: [svelteTesting()],
