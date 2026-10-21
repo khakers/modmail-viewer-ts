@@ -68,7 +68,7 @@
 		"prettier-plugin-svelte": "^4.1.1",
 		"prettier-plugin-tailwindcss": "^0.8.0",
 		"sorcery": "^1.0.0",
-		"svelte": "^5.56.4",
+		"svelte": "^5.57.2",
 		"svelte-check": "^4.7.1",
 		"svelte-inspect-value": "^0.11.3",
 		"sveltekit-superforms": "^2.30.1",
