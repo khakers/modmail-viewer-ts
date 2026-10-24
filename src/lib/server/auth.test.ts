@@ -5,9 +5,8 @@ import { drizzle, type BetterSQLite3Database } from 'drizzle-orm/better-sqlite3'
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
 import { eq } from 'drizzle-orm';
 import * as schema from '$lib/server/db/schema';
-import { encodeHexLowerCase } from '@oslojs/encoding';
-import { sha256 } from '@oslojs/crypto/sha2';
 import { addDays } from 'date-fns';
+import { sha256HashString } from './hash';
 
 type DbSchema = typeof schema;
 
@@ -96,7 +95,7 @@ describe('auth', () => {
 			await auth.createSession(token, discordTokens);
 
 			// Verify the session was created
-			const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
+			const sessionId = sha256HashString(token);
 			
 			const dbSessions = client.select().from(session).where(eq(session.id, sessionId)).all();
 			expect(dbSessions).toHaveLength(1);
@@ -137,7 +136,7 @@ describe('auth', () => {
 			await auth.createSession(token, updatedTokens);
 
 			// Verify the session was created
-			const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
+			const sessionId = sha256HashString(token);
 			
 			const dbSessions = client.select().from(session).where(eq(session.id, sessionId)).all();
 			expect(dbSessions).toHaveLength(1);
@@ -154,7 +153,7 @@ describe('auth', () => {
 	describe('session validation', () => {
 		it('should validate a session token', async () => {
 			const token = 'tokentest2';
-			const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
+			const sessionId = sha256HashString(token);
 
 			// Insert user first due to foreign key constraint
 			client
@@ -196,7 +195,7 @@ describe('auth', () => {
 
 		it('should delete and return null for expired session', async () => {
 			const token = 'expired-token';
-			const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
+			const sessionId = sha256HashString(token);
 			
 			// Insert user first due to foreign key constraint
 			client
@@ -238,7 +237,7 @@ describe('auth', () => {
 
 		it('should renew session when within 15 days of expiration', async () => {
 			const token = 'renewal-token';
-			const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
+			const sessionId = sha256HashString(token);
 			
 			// Insert user first due to foreign key constraint
 			client
@@ -288,7 +287,7 @@ describe('auth', () => {
 
 		it('should not renew session when there is more than 15 days until expiration', async () => {
 			const token = 'no-renewal-token';
-			const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
+			const sessionId = sha256HashString(token);
 			
 			// Insert user first due to foreign key constraint
 			client
@@ -338,7 +337,7 @@ describe('auth', () => {
 
 		it('should validate session at the exact 15-day renewal boundary', async () => {
 			const token = 'boundary-token';
-			const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
+			const sessionId = sha256HashString(token);
 			
 			// Insert user first due to foreign key constraint
 			client
@@ -385,7 +384,7 @@ describe('auth', () => {
 	describe('session invalidation', () => {
 		it('should invalidate a session', async () => {
 			const token = 'tokentest3';
-			const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
+			const sessionId = sha256HashString(token);
 
 			// Insert user first due to foreign key constraint
 			client
@@ -418,7 +417,7 @@ describe('auth', () => {
 
 		it('should revoke refresh token when invalidating the last session for a user', async () => {
 			const token = 'last-session-token';
-			const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
+			const sessionId = sha256HashString(token);
 
 			// Insert user
 			client
@@ -462,8 +461,8 @@ describe('auth', () => {
 		it('should not revoke refresh token when invalidating one of multiple sessions', async () => {
 			const token1 = 'multi-session-token-1';
 			const token2 = 'multi-session-token-2';
-			const sessionId1 = encodeHexLowerCase(sha256(new TextEncoder().encode(token1)));
-			const sessionId2 = encodeHexLowerCase(sha256(new TextEncoder().encode(token2)));
+			const sessionId1 = sha256HashString(token1);
+			const sessionId2 = sha256HashString(token2);
 
 			// Insert user
 			client

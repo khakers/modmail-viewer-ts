@@ -8,7 +8,7 @@ import type { MongoClient } from "mongodb";
 import { GetAllTenants } from "./sources/jsonSource";
 import { Cacheable } from "cacheable";
 import { coalesceAsync } from "../coaleseAsync";
-import { hashString } from '$lib/server/cache-utils';
+import { sha256HashString } from '$lib/server/hash';
 import type { ModmailThread } from "$lib/modmail";
 
 
@@ -129,7 +129,7 @@ export class Tenant {
     async getPermissionsLevel(discordRoles: string[], discordUserId: string): Promise<PermissionLevel | undefined> {
 
         // Cache value is unique per tenant and potentially per bot id within each tenant
-        const key = "levelPermissions::" + hashString(this.tenantData.slug + this.tenantData.bot_id)
+        const key = "levelPermissions::" + sha256HashString(this.tenantData.slug + this.tenantData.bot_id)
 
         let permissionMap = await cache.get<config['level_permissions']>(key)
 

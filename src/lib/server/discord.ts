@@ -4,7 +4,7 @@ import { Cacheable } from 'cacheable';
 import { env } from '$env/dynamic/private';
 import { DISCORD_API_URL } from '$env/static/private';
 import { addMinutes, isAfter, isPast } from 'date-fns';
-import { hashString } from '$lib/server/cache-utils';
+import { sha256HashString } from '$lib/server/hash';
 import { coalesceAsync } from '$lib/server/coaleseAsync';
 
 export type DiscordUser = {
@@ -397,12 +397,12 @@ export class CacheableDiscordApi {
 			if (response === undefined) {
 				throw new Error('received undefined response from discord api');
 			}
-			await cache.set('getDiscordUser::' + hashString(response.id), response, '10m');
+			await cache.set('getDiscordUser::' + sha256HashString(response.id), response, '10m');
 
 			return response;
 		}
 
-		const key = 'getDiscordUser::' + hashString(this.discordToken.uid);
+		const key = 'getDiscordUser::' + sha256HashString(this.discordToken.uid);
 
 		let response = await cache.get<DiscordUser>(key);
 
@@ -411,7 +411,7 @@ export class CacheableDiscordApi {
 
 			// we coalesce with the token since within the space any duplicates will happen we know the token but not necessarily the uid
 			response = await coalesceAsync(
-				'discordApi::getDiscordUser' + hashString(this.discordToken.accessToken),
+				'discordApi::getDiscordUser' + sha256HashString(this.discordToken.accessToken),
 				async () => {
 					response = await this.DiscordAPI.getDiscordUser();
 
@@ -443,7 +443,7 @@ export class CacheableDiscordApi {
 			return response;
 		}
 
-		const key = 'getGuildUserInfo::' + hashString(this.discordToken.uid + guildId);
+		const key = 'getGuildUserInfo::' + sha256HashString(this.discordToken.uid + guildId);
 
 		let response = await cache.get<GuildMember>(key);
 
@@ -452,7 +452,7 @@ export class CacheableDiscordApi {
 
 			// we coalesce with the token since within the space any duplicates will happen we know the token but not necessarily the uid
 			response = await coalesceAsync(
-				'discordApi::getGuildUserInfo' + hashString(this.discordToken.accessToken),
+				'discordApi::getGuildUserInfo' + sha256HashString(this.discordToken.accessToken),
 				async () => {
 					response = await this.DiscordAPI.getGuildUserInfo(guildId);
 
@@ -478,7 +478,7 @@ export class CacheableDiscordApi {
 			return await this.DiscordAPI.getUserGuilds();
 		}
 
-		const key = 'getUserGuilds::' + hashString(this.discordToken.uid);
+		const key = 'getUserGuilds::' + sha256HashString(this.discordToken.uid);
 
 		let response = await cache.get<Array<PartialGuild>>(key);
 
@@ -487,7 +487,7 @@ export class CacheableDiscordApi {
 
 			// we coalesce with the token since within the space any duplicates will happen we know the token but not necessarily the uid
 			response = await coalesceAsync(
-				'discordApi::getUserGuilds' + hashString(this.discordToken.accessToken),
+				'discordApi::getUserGuilds' + sha256HashString(this.discordToken.accessToken),
 				async () => {
 					response = await this.DiscordAPI.getUserGuilds();
 

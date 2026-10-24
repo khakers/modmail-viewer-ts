@@ -28,7 +28,6 @@
 		"@jsrepo/transform-prettier": "^8.0.0",
 		"@keyv/memcache": "^2.0.2",
 		"@lucide/svelte": "^1.21.0",
-		"@oslojs/crypto": "^1.0.1",
 		"@oslojs/encoding": "^1.1.0",
 		"@sveltejs/adapter-node": "^5.5.7",
 		"@sveltejs/kit": "^2.70.2",

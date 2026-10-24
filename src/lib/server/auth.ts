@@ -1,13 +1,13 @@
 import type { RequestEvent } from '@sveltejs/kit';
 import { count, eq } from 'drizzle-orm';
-import { sha256 } from '@oslojs/crypto/sha2';
-import { encodeBase64url, encodeHexLowerCase } from '@oslojs/encoding';
+import { encodeBase64url } from '@oslojs/encoding';
 import { db } from '$lib/server/db';
 import * as table from '$lib/server/db/schema';
 import { Discord } from 'arctic';
 import { env } from '$env/dynamic/private';
 import { logger } from '$lib/logger';
 import { addDays, isPast, subDays } from 'date-fns';
+import { sha256HashString } from './hash';
 
 // TODO verify these environment variables are set at start
 export const discord = new Discord(
@@ -63,7 +63,7 @@ export async function getDiscordRefreshToken(uid: string) {
 }
 
 export async function createSession(token: string, discordTokens: table.User) {
-	const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
+	const sessionId = sha256HashString(token);
 	const session = {
 		id: sessionId,
 		discordUserId: discordTokens.uid,
@@ -116,7 +116,7 @@ export async function getSessionsForUser(discordUid: string) {
 }
 
 export async function validateSessionToken(token: string) {
-	const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
+	const sessionId = sha256HashString(token);
 	const [result] = await db
 		.select({
 			session: table.session
