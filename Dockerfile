@@ -1,13 +1,14 @@
-# TODO update dockerfile for node 25. Requires refactor because corepack has been removed
-FROM node:24 AS base
+ARG PNPM_VERSION=10.12.1
+
+FROM node:26 AS base
+ARG PNPM_VERSION
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
-RUN corepack enable
+RUN npm install --global pnpm@${PNPM_VERSION}
 
 FROM base AS base-app
 WORKDIR /app
 COPY . /app
-RUN corepack install
 
 FROM base-app AS prod-deps
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --prod --frozen-lockfile
@@ -23,10 +24,11 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 RUN pnpm run build
 
-FROM node:24-slim
+FROM node:26-slim
+ARG PNPM_VERSION
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
-RUN corepack enable
+RUN npm install --global pnpm@${PNPM_VERSION}
 WORKDIR /app
 ADD package.json /app/
 ADD drizzle /app/drizzle
@@ -37,4 +39,3 @@ VOLUME [ "/var/data" ]
 ENV DATABASE_URL=/var/data/local.db
 ENV NODE_ENV=production
 ENTRYPOINT [ "pnpm", "start" ]
-
