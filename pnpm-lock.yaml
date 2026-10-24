@@ -49,8 +49,8 @@ importers:
         specifier: ^2.0.2
         version: 2.0.2(keyv@5.6.0)
       '@lucide/svelte':
-        specifier: ^1.21.0
-        version: 1.21.0(svelte@5.57.2(@typescript-eslint/types@8.62.0))
+        specifier: ^1.60.0
+        version: 1.60.0(svelte@5.57.2(@typescript-eslint/types@8.62.0))
       '@oslojs/encoding':
         specifier: ^1.1.0
         version: 1.1.0
@@ -907,8 +907,8 @@ packages:
   '@lix-js/server-protocol-schema@0.1.1':
     resolution: {integrity: sha512-jBeALB6prAbtr5q4vTuxnRZZv1M2rKe8iNqRQhFJ4Tv7150unEa0vKyz0hs8Gl3fUGsWaNJBh3J8++fpbrpRBQ==}
 
-  '@lucide/svelte@1.21.0':
-    resolution: {integrity: sha512-MEv//A7Jv3kHukZowv/DWp1MAtUzJKYwtJsmnQ7X98lCgtac3z3NbaToDl3Q6jO3gS9sougFpcD+t+YuxOkRMw==}
+  '@lucide/svelte@1.60.0':
+    resolution: {integrity: sha512-Q4lkuuBLrhxjBK8yuJ6GjeHZDOzrxlRH5GOzCzI7HJBeCE+Rj1kwi4KsD81XM50bjnfwhPhSFrh/j+D4vn8jUg==}
     peerDependencies:
       svelte: ^5
 
@@ -4466,7 +4466,7 @@ snapshots:
 
   '@lix-js/server-protocol-schema@0.1.1': {}
 
-  '@lucide/svelte@1.21.0(svelte@5.57.2(@typescript-eslint/types@8.62.0))':
+  '@lucide/svelte@1.60.0(svelte@5.57.2(@typescript-eslint/types@8.62.0))':
     dependencies:
       svelte: 5.57.2(@typescript-eslint/types@8.62.0)
 
