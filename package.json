@@ -83,7 +83,6 @@
 		"better-sqlite3": "^12.11.1",
 		"cacheable": "^2.5.0",
 		"drizzle-orm": "^0.45.2",
-		"minio": "^8.0.7",
 		"mongodb": "^7.4.0",
 		"pino": "^10.3.1"
 	},
